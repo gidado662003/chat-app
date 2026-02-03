@@ -1,5 +1,6 @@
 const express = require("express");
 const allRoutes = require("./routes/api");
+const authRoutes = require("./routes/auth.route");
 const cors = require("cors");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
@@ -15,7 +16,7 @@ const corsOptions = {
   credentials: true, // Allow cookies/auth headers
 };
 
-app.use("/uploads", express.static("public/uploads"))
+app.use("/uploads", express.static("public/uploads"));
 
 // Apply CORS middleware BEFORE other middleware
 app.use(cors(corsOptions));
@@ -26,5 +27,6 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(morgan("dev"));
 app.use("/api", allRoutes);
+app.use("/auth", authRoutes);
 
 module.exports = app;

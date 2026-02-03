@@ -1,85 +1,57 @@
-const bcrypt = require("bcryptjs");
 const User = require("../../models/user.schema");
-const jwt = require("jsonwebtoken");
 
-async function createUser(req, res) {
+async function syncUserProfile(req, res) {
   try {
-    const { username, email, password } = req.body;
+    const erp_user = req.user;
 
-    // Validation
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: "All fields required" });
+    if (!erp_user || !erp_user.email) {
+      return res.status(400).json({ error: "Invalid user data from token" });
     }
 
-    // Check if user exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }],
-    });
-
-    if (existingUser) {
-      return res.status(400).json({ error: "User already exists" });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
-    const user = new User({
-      username,
-      email,
-      password: hashedPassword,
-    });
-
-    await user.save();
-
-    // Don't send password back
-    const userResponse = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
+    const getMappedRole = (laravelRole) => {
+      switch (laravelRole) {
+        case "Admin Manager":
+          return "admin";
+        case "Moderator":
+          return "moderator";
+        default:
+          return "user";
+      }
     };
 
-    res.status(201).json({
-      message: "User created successfully",
+    const mappedRole = getMappedRole(erp_user.role);
+
+
+    let user = await User.findOne({ email: erp_user.email });
+
+    if (!user) {
+      user = new User({
+        displayName: erp_user.name,
+        email: erp_user.email,
+        username: erp_user.email.split("@")[0],
+        phone: erp_user.phone,
+        role: mappedRole,
+        laravel_id: erp_user.id,
+        department: erp_user.department.name,
+      });
+      await user.save();
+    }
+
+    const userResponse = {
+      id: user._id,
+      displayName: user.displayName,
+      email: user.email,
+      role: user.role,
+      laravel_id: user.laravel_id,
+      department: user.department,
+    };
+
+    return res.status(200).json({
+      message: "User profile synced successfully",
       user: userResponse,
     });
   } catch (error) {
-    console.error("Signup error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-}
-
-async function loginUser(req, res) {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    res.cookie("token", token, {
-      httpOnly: true,                                  // Prevents XSS (JavaScript access)
-      secure: false,   // Only sends over HTTPS                            // Protects against CSRF
-      maxAge: 3600000,                                // 1 hour in milliseconds
-      path: "/",                                      // Ensures cookie is available on all routes
-    });
-    const userResponse = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-    };
-    return res
-      .status(200)
-      .json({ message: "Login successful", user: userResponse });
-  } catch (error) {
-    console.error("Login error:", error);
+    console.error("syncUserProfile error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 }
@@ -94,27 +66,22 @@ async function isAuthenticated(req, res) {
 
 async function getAllusers(req, res) {
   try {
-    // Get query parameters for pagination/filtering
     const { page = 1, limit = 10, search } = req.query;
     const skip = (page - 1) * limit;
 
-    // Logged-in user ID
-    const currentUserId = req.userId;
+    const currentUserEmail = req.user.email;
 
-    // Base filter: exclude logged-in user
     let filter = {
-      _id: { $ne: currentUserId },
+      email: { $ne: currentUserEmail },
     };
     if (search) {
-      // Combine exclusion with search using $and
       filter = {
         $and: [
-          { _id: { $ne: currentUserId } },
+          { email: { $ne: currentUserEmail } },
           {
             $or: [
               { username: { $regex: search, $options: "i" } },
               { email: { $regex: search, $options: "i" } },
-              { displayName: { $regex: search, $options: "i" } },
             ],
           },
         ],
@@ -167,4 +134,4 @@ async function getUserById(req, res) {
   }
 }
 
-module.exports = { createUser, getAllusers, getUserById, loginUser, isAuthenticated };
+module.exports = { syncUserProfile, getAllusers, getUserById, isAuthenticated };

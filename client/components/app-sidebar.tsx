@@ -100,7 +100,7 @@ export function AppSidebar() {
   async function handleChat(userId: string) {
     try {
       const res = await createOrGetPrivateChat(userId);
-      router.push(`/chats/${res.chat._id}`);
+      router.push(`/chat/chats/${res.chat._id}`);
     } catch (err) {
       console.error(err);
     }
@@ -133,7 +133,7 @@ export function AppSidebar() {
         {user && (
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
-              {user.username?.charAt(0).toUpperCase()}
+              {user.email?.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">{user.username}</p>
@@ -271,8 +271,8 @@ export function AppSidebar() {
 
         <button
           onClick={() => {
-            // Add your logout logic here
-            router.push("/chat/login");
+            useAuthStore.getState().logout();
+            router.push("/");
           }}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-red-600 hover:bg-red-50"
         >

@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import {
     FileText,
     Clock,
@@ -9,25 +9,27 @@ import {
 import RequestListCards from "@/components/internal-requsitions/card"
 import DateRangePicker from "@/components/internal-requsitions/datepicker"
 import { internlRequestAPI } from "@/lib/internalRequestApi"
-import { CountList, InternalRequisitionOutPut } from "@/lib/internalRequestTypes"
+import { CountList, InternalRequisition } from "@/lib/internalRequestTypes"
 import RequestTable from "@/components/internal-requsitions/requestTable"
 import InputSearch from "@/components/internal-requsitions/inputSearch"
 import { useRouter, useSearchParams } from "next/navigation";
 
-function page() {
+function RequisitionListContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const initialSearch = searchParams.get("search") || "";
     const initialStatus = searchParams.get("status") || "";
     const [listCount, setListCount] = useState<CountList>()
-    const [data, setData] = useState<InternalRequisitionOutPut>()
+    const [data, setData] = useState<InternalRequisition[]>()
     const [statusData, setStatusData] = useState<string>(initialStatus)
     const [searchInput, setSearchInput] = useState<string>(initialSearch)
-    const [hasMore, setHasMore] = useState()
-    const [cursorTimeStamp, setCursorTimeStamp] = useState()
-    const [cursorId, setCursorId] = useState()
+    const [hasMore, setHasMore] = useState<boolean>()
+    const [cursorTimeStamp, setCursorTimeStamp] = useState<string | undefined>()
+    const [cursorId, setCursorId] = useState<string | undefined>()
     const [cursorStack, setCursorStack] = useState<any[]>([]);
-    console.log(cursorStack)
+    const [startDate, setStartDate] = useState<string>("")
+    const [endDate, setEndDate] = useState<string>("")
+
     // helper for url
     const updateURL = (params: { search?: string; status?: string }) => {
         const query = new URLSearchParams();
@@ -48,7 +50,7 @@ function page() {
     useEffect(() => {
         updateURL({ search: searchInput, status: statusData });
         fetchRequests(null)
-    }, [statusData, searchInput])
+    }, [statusData, searchInput, startDate, endDate])
 
     const fetchRequests = async (cursorId?: string | null, cursorTimeStamp?: string) => {
         const responce = await internlRequestAPI.allData({
@@ -56,12 +58,15 @@ function page() {
             status: statusData,
             cursorTimestamp: cursorTimeStamp || "",
             cursorId: cursorId || "",
+            startDate: startDate || "",
+            endDate: endDate || "",
         })
 
         setData(responce?.data)
+        setListCount(responce?.counts)
         setHasMore(responce?.hasMore)
-        setCursorId(responce?.nextCursor.id || "");
-        setCursorTimeStamp(responce?.nextCursor.timestamp)
+        setCursorId(responce?.nextCursor?.id ?? "");
+        setCursorTimeStamp(responce?.nextCursor?.timestamp)
     }
     const handleNext = () => {
         if (!cursorId && !cursorTimeStamp) return;
@@ -85,7 +90,10 @@ function page() {
 
     return (
         <div>
-            <DateRangePicker />
+            <DateRangePicker onDateChange={(startDate, endDate) => {
+                setStartDate(startDate)
+                setEndDate(endDate)
+            }} />
 
             <div className='grid grid-cols-5 gap-3 p-3'>
                 <div onClick={() => { setStatusData("") }}>
@@ -127,4 +135,12 @@ function page() {
     )
 }
 
-export default page
+function Page() {
+    return (
+        <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
+            <RequisitionListContent />
+        </Suspense>
+    );
+}
+
+export default Page

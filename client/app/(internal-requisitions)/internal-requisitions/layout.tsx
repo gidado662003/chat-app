@@ -1,5 +1,5 @@
 "use client"
-import InternalRequisitionSidebar from "@/components/admin/internal-requsition-sidebar";
+import InternalRequisitionSidebar from "@/components/internal-requsitions/internal-requsition-sidebar";
 import Link from "next/link";
 
 

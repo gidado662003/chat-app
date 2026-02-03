@@ -14,20 +14,18 @@ export default function RootLayout({
   const { isAuthenticated, isLoading } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
-  const isAuthPage = pathname === "/chat/login" || pathname === "/chat/signup";
   const isLandingPage = pathname === "/";
-  const notFoundPage = pathname === "/404";
   const isAdminRoute = pathname?.startsWith("/admin");
 
   useEffect(() => {
-    // Redirect to login if not authenticated and trying to access protected routes
-    if (!isLoading && !isAuthenticated && !isAuthPage && !isLandingPage && !isAdminRoute) {
-      router.push("/chat/login");
+    // Redirect to landing if not authenticated (user must open app via Laravel ERP link with token)
+    if (!isLoading && !isAuthenticated && !isLandingPage && !isAdminRoute) {
+      // router.push("/");
     }
   }, [isAuthenticated, isLoading, pathname, router, isAdminRoute]);
 
   // Show loading while checking auth
-  if (isLoading && !["/chat/login", "/chat/signup", "/"].includes(pathname) && !isAdminRoute) {
+  if (isLoading && pathname !== "/" && !isAdminRoute) {
     return (
       <html lang="en">
         <body>
@@ -44,8 +42,7 @@ export default function RootLayout({
       {!isAdminRoute && <SocketInitializer />}
       {isAdminRoute ? (
         <div className="h-full">{children}</div>
-      ) : isAuthPage ? (
-        // Auth pages without sidebar
+      ) : isLandingPage ? (
         <div className="h-full">{children}</div>
       ) : (
         // App pages with permanent sidebar

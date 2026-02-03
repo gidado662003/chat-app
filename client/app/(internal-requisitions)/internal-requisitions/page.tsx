@@ -612,7 +612,7 @@ import React from 'react'
 
 function page() {
     return (
-        <div>page d</div>
+        <div>page </div>
     )
 }
 

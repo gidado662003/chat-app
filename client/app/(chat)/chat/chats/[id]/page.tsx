@@ -225,26 +225,38 @@ export default function ChatPage({ params }: ChatPageProps) {
     return () => { socket.off("messages_read", handleMessagesRead); };
   }, [id, chat, user, groupInfo]);
 
+  const displayName =
+    (currentUser as { displayName?: string })?.displayName ??
+    currentUser?.username ??
+    currentUser?.email?.split("@")[0] ??
+    "Someone";
+
   function handleTyping() {
     if (!typing) {
       setTyping(true);
-      socket.emit("typing", { chatId: id, user: currentUser?.username });
+      socket.emit("typing", { chatId: id, user: displayName });
     }
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit("stop_typing", { chatId: id, userId: currentUser?.username });
+      socket.emit("stop_typing", { chatId: id, userId: currentUserId });
       setTyping(false);
     }, 1000);
   }
 
   useEffect(() => {
-    socket.on("user_typing", ({ user }) => setTypingUser(user));
-    socket.on("user_stop_typing", () => setTypingUser(null));
-    return () => {
-      socket.off("user_typing");
-      socket.off("user_stop_typing");
+    const onUserTyping = ({ chatId, user }: { chatId: string; user: string }) => {
+      if (chatId === id) setTypingUser(user);
     };
-  }, []);
+    const onUserStopTyping = ({ chatId }: { chatId: string }) => {
+      if (chatId === id) setTypingUser(null);
+    };
+    socket.on("user_typing", onUserTyping);
+    socket.on("user_stop_typing", onUserStopTyping);
+    return () => {
+      socket.off("user_typing", onUserTyping);
+      socket.off("user_stop_typing", onUserStopTyping);
+    };
+  }, [id]);
 
   useEffect(() => {
     const handleMessageDeleted = ({ messageId, chatId }: { messageId: string; chatId: string }) => {

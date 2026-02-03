@@ -1,6 +1,7 @@
 // models/requisition.model.js
 const mongoose = require("mongoose");
 
+
 const itemSchema = new mongoose.Schema({
     description: { type: String, required: true },
     quantity: { type: Number, required: true, min: 1 },
@@ -15,12 +16,12 @@ const itemSchema = new mongoose.Schema({
     },
 });
 
+
 const userSchema = new mongoose.Schema(
     {
         name: { type: String, required: true },
         email: { type: String, required: true },
         department: { type: String, required: true },
-
         role: { type: String },
     },
     { _id: false }
@@ -31,11 +32,11 @@ const approvedByFinanceSchema = new mongoose.Schema(
         name: { type: String, required: true },
         email: { type: String, required: true },
         department: { type: String, required: true },
-
         role: { type: String },
     },
     { _id: false }
 );
+
 
 const accountToPaySchema = new mongoose.Schema(
     {
@@ -46,53 +47,67 @@ const accountToPaySchema = new mongoose.Schema(
     { _id: false }
 );
 
+
+const paymentHistorySchema = new mongoose.Schema(
+    {
+        amount: { type: Number, required: true, min: 0 },
+        date: { type: Date, default: Date.now },
+        paymentMethod: { type: String },
+        bank: { type: String },
+        referenceNumber: { type: String },
+        paidBy: { type: String },
+        comment: { type: String },
+    },
+    { _id: false }
+);
+
+
 const requisitionSchema = new mongoose.Schema(
     {
         title: { type: String, required: true },
         department: { type: String, required: true },
-        // priority: { type: String, enum: ["low", "medium", "high", "urgent"] },
         location: { type: String, required: true },
         category: { type: String, required: true },
+
+        requestedOn: { type: Date, default: Date.now },
         approvedOn: { type: Date, default: null },
         rejectedOn: { type: Date, default: null },
         comment: { type: String, default: null },
-        requestedOn: { type: Date, default: Date.now },
+
         items: { type: [itemSchema], required: true },
         user: { type: userSchema, required: true },
         attachments: [{ type: String }],
+
         approvedByFinance: {
             type: approvedByFinanceSchema,
             default: null,
         },
-        // HOD approval field - commented out for direct finance approval workflow
-        // approvedByHeadOfDepartment: { type: Boolean, default: false },
+
         totalAmount: { type: Number, default: 0 },
         requisitionNumber: { type: String, unique: true },
+
         accountToPay: { type: accountToPaySchema, default: null },
+
         paymentMethod: {
             type: String,
             enum: ["cheque", "transfer"],
             default: null,
         },
+
         bank: { type: String, default: null },
         referenceNumber: { type: String, default: null },
-        // Payment tracking fields
-        amountPaid: { type: Number, default: 0 },
+
         paymentType: {
             type: String,
             enum: ["full", "partial"],
             default: null,
         },
-        paymentHistory: [
-            {
-                amount: { type: Number, required: true },
-                date: { type: Date, default: Date.now },
-                paymentMethod: { type: String },
-                bank: { type: String },
-                referenceNumber: { type: String },
-                paidBy: { type: String }, // Finance user who processed the payment
-            },
-        ],
+
+        paymentHistory: {
+            type: [paymentHistorySchema],
+            default: [],
+        },
+
         status: {
             type: String,
             enum: [
@@ -101,7 +116,7 @@ const requisitionSchema = new mongoose.Schema(
                 "approved",
                 "rejected",
                 "completed",
-                "partially_paid",
+                "outstanding",
             ],
             default: "pending",
         },
@@ -109,16 +124,56 @@ const requisitionSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Virtual property for amount remaining (calculated on-the-fly)
-// This is better than storing it since it will always be accurate
+
 requisitionSchema.virtual("amountRemaining").get(function () {
-    const totalAmount = this.totalAmount || 0;
-    const amountPaid = this.amountPaid || 0;
-    const remaining = totalAmount - amountPaid;
-    return Math.max(0, remaining); // Ensure never negative
+    const totalPaid = this.paymentHistory.reduce(
+        (sum, payment) => sum + (payment.amount || 0),
+        0
+    );
+
+    return Math.max(0, (this.totalAmount || 0) - totalPaid);
+});
+requisitionSchema.virtual("totalAmmontPaid").get(function () {
+    const totalPaid = this.paymentHistory.reduce(
+        (sum, payment) => sum + (payment.amount || 0),
+        0
+    );
+
+    return totalPaid
 });
 
-// Ensure virtual fields are serialized when converting to JSON
+// models/requisition.model.js
+
+requisitionSchema.pre("save", async function () {
+    // 'this' refers to the document
+
+    // 1. If status is rejected, stop here.
+    if (this.status === "rejected") {
+        this.rejectedOn = this.rejectedOn || new Date();
+        return; // In async middleware, return acts as next()
+    }
+
+    // 2. Logic for payment history
+    if (!this.paymentHistory || this.paymentHistory.length === 0) return;
+
+    const totalPaid = this.paymentHistory.reduce(
+        (sum, payment) => sum + (payment.amount || 0),
+        0
+    );
+
+    // Using a small epsilon or Math.round to avoid floating point math issues
+    if (totalPaid >= this.totalAmount && this.totalAmount > 0) {
+        this.status = "completed";
+        this.paymentType = "full";
+        this.approvedOn = this.approvedOn || new Date();
+    } else if (totalPaid > 0) {
+        this.status = "outstanding";
+        this.paymentType = "partial";
+    }
+});
+
+
 requisitionSchema.set("toJSON", { virtuals: true });
 requisitionSchema.set("toObject", { virtuals: true });
+
 module.exports = mongoose.model("InternalRequisition", requisitionSchema);

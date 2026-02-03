@@ -1,23 +1,21 @@
 const express = require("express");
 const {
-  createUser,
+  syncUserProfile,
   getAllusers,
   getUserById,
-  loginUser,
   isAuthenticated,
 } = require("./users.controller");
-const authMiddleware = require("../../middleware/authMiddleware");
+const validateSanctumToken = require("../../middleware/validateSanctumToken");
 
 const route = express.Router();
 
-// Public routes (no authentication required)
-route.post("/signup", createUser);
-route.post("/login", loginUser);
+// Sync user profile with Laravel token (protected by Sanctum middleware)
+route.post("/sync", validateSanctumToken, syncUserProfile);
 
 // Protected routes (authentication required)
-route.get("/", authMiddleware, getAllusers);
-route.get("/:id", authMiddleware, getUserById);
+route.get("/", validateSanctumToken, getAllusers);
+route.get("/:id", validateSanctumToken, getUserById);
 
-route.get("/is-authenticated", authMiddleware, isAuthenticated);
+route.get("/is-authenticated", validateSanctumToken, isAuthenticated);
 
 module.exports = route;

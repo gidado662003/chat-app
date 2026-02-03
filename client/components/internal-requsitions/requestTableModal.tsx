@@ -20,17 +20,18 @@ import {
     TableRow
 } from "@/components/ui/table"
 import { formatCurrency } from "@/helper/currencyFormat"
-
+import { InternalRequisition } from "@/lib/internalRequestTypes"
+import { Button } from '../ui/button';
+import { useRouter } from 'next/navigation';
 function RequestTableModal({ itemId }: { itemId: string }) {
-    const [data, setData] = useState(null);
+    const [data, setData] = useState<InternalRequisition | null>(null);
     const [loading, setLoading] = useState(true);
-
+    const router = useRouter();
     useEffect(() => {
         const handleGetItemById = async () => {
             try {
                 const response = await internlRequestAPI.dataById(itemId);
                 setData(response);
-                console.log(response)
             } catch (error) {
                 console.error("Error fetching requisition:", error);
             } finally {
@@ -60,6 +61,11 @@ function RequestTableModal({ itemId }: { itemId: string }) {
                                     <DialogDescription className="mt-1">
                                         Requisition ID: <span className="font-mono text-primary">{data.requisitionNumber}</span>
                                     </DialogDescription>
+                                </div>
+                                <div>
+                                    <Button variant="outline" onClick={() => router.push(`/internal-requisitions/request/${data._id}`)}>
+                                        view more details
+                                    </Button>
                                 </div>
                                 <Badge variant={data.status === 'pending' ? 'outline' : 'default'} className="capitalize">
                                     {data.status}
@@ -113,9 +119,15 @@ function RequestTableModal({ itemId }: { itemId: string }) {
                             <div className="p-4 rounded-lg bg-slate-50 border">
                                 <h4 className="font-semibold mb-2 text-sm uppercase tracking-wider text-muted-foreground">Payment Details</h4>
                                 <div className="space-y-1 text-sm">
-                                    <p><span className="text-muted-foreground">Account Name:</span> {data.accountToPay.accountName}</p>
-                                    <p><span className="text-muted-foreground">Account Number:</span> {data.accountToPay.accountNumber}</p>
-                                    <p><span className="text-muted-foreground">Bank:</span> {data.accountToPay.bankName}</p>
+                                    {data.accountToPay ? (
+                                        <>
+                                            <p><span className="text-muted-foreground">Account Name:</span> {data.accountToPay.accountName}</p>
+                                            <p><span className="text-muted-foreground">Account Number:</span> {data.accountToPay.accountNumber}</p>
+                                            <p><span className="text-muted-foreground">Bank:</span> {data.accountToPay.bankName}</p>
+                                        </>
+                                    ) : (
+                                        <p className="text-muted-foreground">No account details</p>
+                                    )}
                                 </div>
                             </div>
 

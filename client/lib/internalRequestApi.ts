@@ -1,5 +1,5 @@
 import axios from "axios";
-import { InternalRequisition } from "@/lib/internalRequestTypes";
+import { AllDataResponse } from "@/lib/internalRequestTypes";
 
 export const requestApi = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
@@ -8,6 +8,30 @@ export const requestApi = axios.create({
   },
   withCredentials: true,
 });
+
+requestApi.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Handle global errors
+    if (error.response) {
+      const { status } = error.response;
+      if (status === 401) {
+        console.error("Session expired. Redirecting...");
+        if (typeof window !== "undefined") {
+          window.location.href = "http://10.10.253.3:8000/";
+        }
+      }
+
+      if (status === 403) {
+        console.error("Permission denied.");
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export const internlRequestAPI = {
   countList: async () => {
@@ -18,23 +42,38 @@ export const internlRequestAPI = {
       console.error("Count List failed", error);
     }
   },
+
   allData: async ({
     search,
     status,
     bank,
     cursorTimestamp,
     cursorId,
+    startDate,
+    endDate,
   }: {
     search?: string;
     status?: string;
     bank?: string;
     cursorTimestamp?: string;
     cursorId?: string;
+    startDate?: string;
+    endDate?: string;
   }) => {
     try {
-      const res = await requestApi.get<InternalRequisition[]>(
+      const res = await requestApi.get<AllDataResponse>(
         `/internalrequest/allrequest`,
-        { params: { search, status, bank, cursorTimestamp, cursorId } },
+        {
+          params: {
+            search,
+            status,
+            bank,
+            cursorTimestamp,
+            cursorId,
+            startDate,
+            endDate,
+          },
+        }
       );
       return res.data;
     } catch (error) {
@@ -47,6 +86,25 @@ export const internlRequestAPI = {
       return res.data;
     } catch (error) {
       console.error("Fetch all data failed", error);
+    }
+  },
+  createRequest: async (request: any) => {
+    try {
+      const res = await requestApi.post("/internalrequest/create", request);
+      return res.data;
+    } catch (error) {
+      console.error("Create request failed", error);
+    }
+  },
+  updateRequest: async (id: string, request: any) => {
+    try {
+      const res = await requestApi.put(
+        `/internalrequest/update/${id}`,
+        request
+      );
+      return res.data;
+    } catch (error) {
+      console.error("Create request failed", error);
     }
   },
 };

@@ -13,6 +13,9 @@ export const useModuleStore = create<ModuleState>()(
         set({ module: value });
       },
     }),
-    { name: "module-storage" },
+    {
+      name: "module-storage",
+      partialize: (state) => ({ module: state.module }),
+    },
   ),
 );

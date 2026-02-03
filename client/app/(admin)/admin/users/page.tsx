@@ -38,9 +38,9 @@ export default function AdminUsersPage() {
     };
   }, []);
 
-  useEffect(() => {
+  // useEffect(() => {
 
-  }, [])
+  // }, [])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -93,7 +93,6 @@ export default function AdminUsersPage() {
       }
     }
   }
-  console.log(filtered)
 
   return (
     <div className="space-y-6">

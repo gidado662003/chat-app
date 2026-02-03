@@ -34,6 +34,14 @@ export type Approval = {
   department: string;
 };
 
+export type PaymentHistory = {
+  amount: number;
+  date: Date;
+  bank: string;
+  paidBy: string;
+  paymentMethod: number;
+};
+
 export type InternalRequisition = {
   paymentMethod: string | null;
   bank: string | null;
@@ -45,10 +53,10 @@ export type InternalRequisition = {
   department: string;
   priority: string;
   category: string;
-  approvedOn: string | null;
-  rejectedOn: string | null;
+  approvedOn: Date;
+  rejectedOn: Date;
   comment: string;
-  requestedOn: string;
+  requestedOn: Date;
   location: string;
   items: Item[];
   user: User;
@@ -59,14 +67,38 @@ export type InternalRequisition = {
   requisitionNumber: string;
   accountToPay: Account | null;
   status: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   __v: number;
-  paymentHistory: any[];
+  paymentHistory: PaymentHistory[];
   amountRemaining: number;
+  totalAmmontPaid: number;
   id: string;
 };
 
 export type InternalRequisitionOutPut = {
   data: InternalRequisition;
+};
+
+export type AllDataResponse = {
+  data: InternalRequisition[];
+  nextCursor: { timestamp: string; id: string } | null;
+  hasMore: boolean;
+  counts: CountList;
+};
+
+export type CreateRequisitionPayload = {
+  title: string;
+  location: string;
+  category: string;
+  requestedOn: string;
+  accountToPay: Account;
+  items: {
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    id: string;
+    total: number;
+  }[];
+  attachement: File[];
 };

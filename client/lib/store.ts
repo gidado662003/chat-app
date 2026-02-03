@@ -46,6 +46,9 @@ export const useAuthStore = create<AuthState>()(
       setLoading: (isLoading) => set({ isLoading }),
 
       logout: () => {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("erp_token");
+        }
         set({
           user: null,
           isAuthenticated: false,

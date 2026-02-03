@@ -11,5 +11,5 @@ routes.use("/user", Users);
 routes.use("/admin", Admin);
 routes.use("/chats", authMiddleware, Chats);
 routes.use("/messages", authMiddleware, Messages);
-routes.use("/internalrequest", InternalRequests)
+routes.use("/internalrequest", authMiddleware, InternalRequests)
 module.exports = routes;

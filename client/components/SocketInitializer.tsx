@@ -7,27 +7,28 @@ import { useAuthStore } from "../lib/store";
 export default function SocketInitializer() {
   const setIsConnected = useSocketStore((state) => state.setIsConnected);
   const { user, isAuthenticated } = useAuthStore();
+  const userId = user?._id ?? user?.id ?? null;
 
   useEffect(() => {
-
-    if (isAuthenticated && user?._id) {
-
-      socket.auth = { userId: user._id };
-
+    if (isAuthenticated && userId) {
+      socket.auth = { userId: String(userId) };
       socket.connect();
 
-      socket.on("connect", () => setIsConnected(true));
-      socket.on("disconnect", () => setIsConnected(false));
+      const onConnect = () => setIsConnected(true);
+      const onDisconnect = () => setIsConnected(false);
+      socket.on("connect", onConnect);
+      socket.on("disconnect", onDisconnect);
 
       return () => {
-        socket.off("connect");
-        socket.off("disconnect");
-        socket.disconnect();
+        socket.off("connect", onConnect);
+        socket.off("disconnect", onDisconnect);
+        // Don't disconnect in cleanup - avoids "WebSocket closed before connection established"
+        // when effect re-runs (e.g. rehydration). Only disconnect when auth is false (else branch).
       };
     } else {
       socket.disconnect();
     }
-  }, [setIsConnected, isAuthenticated, user]);
+  }, [setIsConnected, isAuthenticated, userId]);
 
   return null;
 }

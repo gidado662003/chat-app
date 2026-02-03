@@ -12,28 +12,32 @@ import {
 
 import { Button } from '../ui/button';
 import { formatCurrency } from "@/helper/currencyFormat"
+import { formatDate } from '@/helper/dateFormat';
 import { internlRequestAPI } from "@/lib/internalRequestApi"
-import { InternalRequisition, InternalRequisitionOutPut } from "@/lib/internalRequestTypes"
+import { InternalRequisition } from "@/lib/internalRequestTypes"
 import RequestTableDropDown from "@/components/internal-requsitions/requestTableDropDown"
 
+type RequestTableProps = {
+    data?: InternalRequisition[];
+    hasMore?: boolean;
+    onNext: () => void;
+    onBack: () => void;
+};
 
+function RequestTable({ data, hasMore, onNext, onBack }: RequestTableProps) {
 
-function RequestTable({ data, hasMore, onNext, onBack }: any) {
-
-    console.log(hasMore)
     const headers = [
         "S/N",
+        "Date",
         "Title",
         "Department",
         "Location",
         "Category",
-        "Paid",
-        "Outstanding",
         "Status",
         "Amount Requested",
         "Actions",
     ];
-    const [requestData, setRequestData] = useState<InternalRequisitionOutPut>()
+    const [requestData, setRequestData] = useState<InternalRequisition[]>()
 
     useEffect(() => {
         if (data) {
@@ -53,14 +57,13 @@ function RequestTable({ data, hasMore, onNext, onBack }: any) {
                 {requestData?.map((data, index,) => (
                     <TableRow key={data._id}>
                         <TableCell>{index + 1}</TableCell>
+                        <TableCell>{formatDate(data.requestedOn)}</TableCell>
                         <TableCell className="max-w-[200px] truncate" title={data.title}>
                             {data.title}
                         </TableCell>
                         <TableCell>{data.department}</TableCell>
                         <TableCell>{data.location || "Not specified"}</TableCell>
                         <TableCell>{data.category}</TableCell>
-                        <TableCell>{formatCurrency(data.amountPaid)}</TableCell>
-                        <TableCell>{formatCurrency(data.amountRemaining)}</TableCell>
                         <TableCell>{data.status}</TableCell>
                         <TableCell>{formatCurrency(data.totalAmount)}</TableCell>
                         <TableCell><RequestTableDropDown itemId={data._id} /></TableCell>

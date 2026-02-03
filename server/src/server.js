@@ -5,7 +5,7 @@ const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const Chat = require("../src/models/chat.schema");
 const Message = require("../src/models/message.schema");
-const User = require("../src/models/user.schema")
+const User = require("../src/models/user.schema");
 
 const server = http.createServer(app);
 
@@ -25,7 +25,7 @@ const io = new Server(server, {
 io.on("connection", async (socket) => {
   const userId = socket.handshake.auth.userId;
   try {
-    const res = await User.findByIdAndUpdate(userId, { isOnline: true })
+    const res = await User.findByIdAndUpdate(userId, { isOnline: true });
     io.emit("user_status_changed", { userId, status: "online" });
   } catch (error) {
     console.error("Error updating online status:", error);
@@ -34,7 +34,6 @@ io.on("connection", async (socket) => {
   // Join a specific chat room
   socket.on("join_chat", (chatId) => {
     socket.join(chatId);
-
   });
 
   // Typing indicators
@@ -61,9 +60,8 @@ io.on("connection", async (socket) => {
         chatId,
         messageId,
         action,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
-
     } catch (error) {
       console.error("Pin update error:", error);
       socket.emit("error", { message: "Failed to update pin status" });
@@ -71,9 +69,11 @@ io.on("connection", async (socket) => {
   });
   // Delete message
   socket.on("message_delete", async ({ messageId, chatId }) => {
-    io.to(chatId).emit("message_was_deleted", { messageId: messageId, chatId: chatId });
-
-  })
+    io.to(chatId).emit("message_was_deleted", {
+      messageId: messageId,
+      chatId: chatId,
+    });
+  });
 
   // Mark as read
   socket.on("mark_as_read", async ({ chatId, userId }) => {
@@ -88,7 +88,7 @@ io.on("connection", async (socket) => {
         },
         {
           $addToSet: { readBy: userObjectId },
-        }
+        },
       );
 
       if (result.modifiedCount > 0) {
@@ -132,12 +132,12 @@ io.on("connection", async (socket) => {
         await chat.save();
 
         const populatedMessage = await Message.findById(newMessage._id)
-          .populate('senderId', 'username avatar')
-          .populate('readBy', 'username avatar');
+          .populate("senderId", "username avatar")
+          .populate("readBy", "username avatar");
 
         io.to(data.chatId).emit("receive_message", {
           ...populatedMessage.toObject(),
-          chatId: data.chatId
+          chatId: data.chatId,
         });
 
         io.emit("chat_list_update", {
@@ -159,12 +159,18 @@ io.on("connection", async (socket) => {
   socket.on("disconnect", async () => {
     const userId = socket.handshake.auth.userId;
     try {
-      const res = await User.findByIdAndUpdate(userId, { isOnline: false, lastSeen: new Date() })
-      io.emit("user_status_changed", { userId, status: "offline", lastseen: new Date() });
+      const res = await User.findByIdAndUpdate(userId, {
+        isOnline: false,
+        lastSeen: new Date(),
+      });
+      io.emit("user_status_changed", {
+        userId,
+        status: "offline",
+        lastseen: new Date(),
+      });
     } catch (error) {
       console.error("Error updating online status:", err);
     }
-
   });
 });
 
@@ -214,8 +220,7 @@ const gracefulShutdown = (signal) => {
 };
 
 // Listen for Nodemon and System signals
-process.once('SIGUSR2', () => gracefulShutdown('SIGUSR2')); // Nodemon restart
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));    // Ctrl+C
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));  // System kill
-
+process.once("SIGUSR2", () => gracefulShutdown("SIGUSR2")); // Nodemon restart
+process.on("SIGINT", () => gracefulShutdown("SIGINT")); // Ctrl+C
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM")); // System kill
 startServer();

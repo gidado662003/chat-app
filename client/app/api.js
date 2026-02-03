@@ -8,39 +8,35 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = sessionStorage.getItem("erp_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // console.log("Authentication failed - redirecting to login");
-
-      // Redirect to login
-      if (typeof window !== "undefined") {
-        window.location.href = "/chat/login";
-      }
+      // Token expired or invalid - user must re-authenticate via Laravel ERP
+      console.log("Token expired - user must re-authenticate via Laravel ERP");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Authentication API functions
 export const authAPI = {
-  login: async (credentials) => {
+  syncUserProfile: async () => {
     try {
-      const response = await api.post("/user/login", credentials);
+      const response = await api.post("/user/sync");
       return response.data;
     } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
-  },
-
-  signup: async (userData) => {
-    try {
-      const response = await api.post("/user/signup", userData);
-      return response.data;
-    } catch (error) {
-      console.error("Signup error:", error);
+      console.error("Sync user profile error:", error);
       throw error;
     }
   },
@@ -123,13 +119,16 @@ export async function getUserChats(query) {
 
 export async function pinChat(chatId, messageId, action) {
   try {
-    const response = await api.post("chats/pinMessage", { chatId, messageId, action })
-    return response.data
+    const response = await api.post("chats/pinMessage", {
+      chatId,
+      messageId,
+      action,
+    });
+    return response.data;
   } catch (error) {
-    console.error("Failed to pIn message:", error)
-    throw (error)
+    console.error("Failed to pIn message:", error);
+    throw error;
   }
-
 }
 
 // Group API functions
@@ -173,9 +172,9 @@ export async function getChatMesssages(chatId, cursorTimestamp, cursorId) {
           cursorTimestamp: cursorTimestamp || "",
           cursorId: cursorId || "",
         },
-      }
+      },
     );
-    return response
+    return response;
   } catch (error) {
     console.error("Get message error", error);
     throw error;
@@ -194,7 +193,7 @@ export async function deleteMessage(messageId) {
 
 export async function isAuthenticated() {
   try {
-    const response = await api.get("/user/is-authenticated", { withCredentials: true });
+    const response = await api.get("/user/is-authenticated");
     return response.data;
   } catch (error) {
     console.error("Is authenticated error:", error);
