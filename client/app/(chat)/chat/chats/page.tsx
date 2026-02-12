@@ -38,10 +38,11 @@ function Chat() {
   }, []);
 
   const sendMessage = () => {
-    if (message.trim() && isConnected) {
-      socket.emit("send_message", { text: message, senderId: currentUserId });
-      setMessage("");
-    }
+    // if (message.trim() && isConnected) {
+    //   socket.emit("send_message", { text: message, senderId: currentUserId });
+    //   setMessage("");
+    // }
+    alert("This is still under review")
   };
 
   const formatTime = (timestamp?: string) => {
@@ -163,7 +164,8 @@ function Chat() {
           </div>
           <button
             onClick={sendMessage}
-            disabled={!isConnected || !message.trim()}
+            // disabled={!isConnected || !message.trim()}
+            disabled={true}
             className={`px-6 rounded-full font-medium transition-all duration-200 flex items-center gap-2 ${!isConnected || !message.trim()
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"

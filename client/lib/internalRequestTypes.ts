@@ -102,3 +102,60 @@ export type CreateRequisitionPayload = {
   }[];
   attachement: File[];
 };
+
+export type DashboardData = {
+  overview: {
+    total: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    totalAmount: number;
+  };
+  departmentStats: StatsWithAmounts[];
+  locationStats: StatsWithAmounts[];
+  recentRequisitions: {
+    _id: string;
+    title: string;
+    department: string;
+    totalAmount: number;
+    requisitionNumber: string;
+    status: string;
+    createdAt: string;
+    amountRemaining?: number;
+    totalAmmontPaid?: number;
+    id?: string;
+  }[];
+  categoryCount: {
+    _id: string;
+    count: number;
+  }[];
+  insights: {
+    approvalRate: number;
+    avgProcessingDays: number;
+    topDepartment: string;
+    monthOverMonthGrowth: number;
+  };
+  monthlyTrends: {
+    _id: { year: number; month: number };
+    count: number;
+    totalAmount: number;
+    approved: number;
+    pending: number;
+    rejected: number;
+  }[];
+};
+
+export type Stats = {
+  _id: string | null;
+  count: number;
+  totalAmount: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+};
+
+export type StatsWithAmounts = Stats & {
+  pendingAmount?: number;
+  approvedAmount?: number;
+  rejectedAmount?: number;
+};

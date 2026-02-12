@@ -19,6 +19,9 @@ import {
   FiPhoneCall,
   FiMoreVertical,
   FiPhoneForwarded,
+  FiCornerUpLeft, // NEW: Reply icon
+  FiX, // NEW: Close icon
+  FiSearch,
 } from "react-icons/fi";
 import { useSocketStore } from "../../../../../store/useSocketStore";
 import {
@@ -47,7 +50,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-import type { User, Message, GroupInfo } from "@/lib/chatTypes";
+import type { User, Message, GroupInfo, ReplyToSnapshot } from "@/lib/chatTypes";
 
 interface ChatPageProps {
   params: Promise<{ id: string }>;
@@ -76,6 +79,13 @@ export default function ChatPage({ params }: ChatPageProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isMentionOpen, setIsMentionOpen] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
+
+  // NEW: Reply state
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [messageSearchQuery, setMessageSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const API_URL = "http://10.10.253.3:5001";
 
@@ -116,7 +126,17 @@ export default function ChatPage({ params }: ChatPageProps) {
     return d.toISOString().split("T")[0];
   };
 
-  const groupedMessages = messages.reduce(
+  const messagesToShow =
+    messageSearchQuery.trim() === ""
+      ? messages
+      : messages.filter((msg) => {
+        const q = messageSearchQuery.toLowerCase();
+        const text = (msg.text ?? "").toLowerCase();
+        const fileName = (msg.fileName ?? "").toLowerCase();
+        return text.includes(q) || fileName.includes(q);
+      });
+
+  const groupedMessages = messagesToShow.reduce(
     (acc: Record<string, Message[]>, msg) => {
       const dayKey = getDateKey(msg.createdAt);
       if (!acc[dayKey]) acc[dayKey] = [];
@@ -372,13 +392,17 @@ export default function ChatPage({ params }: ChatPageProps) {
 
   const sendMessage = () => {
     if (!message.trim()) return;
+
     socket.emit("send_message", {
       chatId: id,
       text: message,
       senderId: currentUserId,
       timestamp: new Date().toISOString(),
+      replyToMessageId: replyingTo?._id || null, // NEW: Send reply ID
     });
+
     setMessage("");
+    setReplyingTo(null); // NEW: Clear reply state
   };
 
   const formatTime = (time: string) =>
@@ -469,6 +493,48 @@ export default function ChatPage({ params }: ChatPageProps) {
     socket.emit("message_delete", { messageId: messageId, chatId: id });
   };
 
+  // NEW: Handle reply to message
+  const handleReplyToMessage = (msg: Message) => {
+    setReplyingTo(msg);
+  };
+
+  // NEW: Scroll to referenced message
+  const scrollToMessage = (messageId: string) => {
+    const element = messageRefs.current[messageId];
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Highlight animation
+      element.classList.add("highlight-message");
+      setTimeout(() => {
+        element.classList.remove("highlight-message");
+      }, 2000);
+    }
+  };
+
+  // NEW: Render reply preview component
+  const ReplyPreview = ({ reply }: { reply: ReplyToSnapshot }) => {
+    const getReplyContent = () => {
+      if (reply.type === "image") return "📷 Photo";
+      if (reply.type === "video") return "🎬 Video";
+      if (reply.type === "file") return `📎 ${reply.fileName}`;
+      return reply.text;
+    };
+
+    return (
+      <div
+        className="border-l-4 border-blue-500 pl-3 py-2 mb-2 bg-blue-50/50 rounded cursor-pointer hover:bg-blue-100/50 transition-colors"
+        onClick={() => scrollToMessage(reply._id)}
+      >
+        <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wide mb-1">
+          {reply.senderId.username}
+        </div>
+        <div className="text-xs text-gray-600 truncate">
+          {getReplyContent()}
+        </div>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col h-screen items-center justify-center bg-white">
@@ -515,7 +581,7 @@ export default function ChatPage({ params }: ChatPageProps) {
             className="cursor-pointer text-blue-500 hover:text-blue-600 transition-colors"
             onClick={() => alert("Coming soon...")}
           />
-          {chat?.type === "group" && (
+          {chat && (
             <DropdownMenu>
               <DropdownMenuTrigger className="px-4 py-1.5 text-xs font-bold border rounded-full hover:bg-gray-50 transition-all uppercase tracking-tighter">
                 <FiMoreVertical
@@ -524,21 +590,63 @@ export default function ChatPage({ params }: ChatPageProps) {
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Group Management</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {chat.groupAdmins.includes(currentUserId) && (
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    <AddToGroup chatId={id} />
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <GroupInfoModal chatId={id} />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setIsSearchOpen(true);
+                    setMessageSearchQuery("");
+                    setTimeout(() => searchInputRef.current?.focus(), 100);
+                  }}
+                  className="gap-2"
+                >
+                  <FiSearch size={16} />
+                  Search in chat
                 </DropdownMenuItem>
+                {chat?.type === "group" && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Group Management</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {chat.groupAdmins.includes(currentUserId) && (
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <AddToGroup chatId={id} />
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <GroupInfoModal chatId={id} />
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </div>
       </header>
+
+      {/* ---------- SEARCH BAR ---------- */}
+      {isSearchOpen && (
+        <div className="flex items-center gap-2 px-4 py-2 border-b bg-slate-50">
+          <FiSearch className="h-4 w-4 text-gray-400 shrink-0" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search messages..."
+            value={messageSearchQuery}
+            onChange={(e) => setMessageSearchQuery(e.target.value)}
+            className="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setIsSearchOpen(false);
+              setMessageSearchQuery("");
+            }}
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+            aria-label="Close search"
+          >
+            <FiX size={18} />
+          </button>
+        </div>
+      )}
 
       {/* ---------- PINNED MESSAGES ---------- */}
       {chat?.pinnedMessages && chat.pinnedMessages.length > 0 && (
@@ -649,17 +757,17 @@ export default function ChatPage({ params }: ChatPageProps) {
                   return (
                     <div
                       key={msg._id}
+                      ref={(el: any) => (messageRefs.current[msg._id] = el)}
                       className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                     >
                       <ContextMenu>
                         <ContextMenuTrigger className="max-w-[88%] sm:max-w-[70%] transition-all">
                           <div
                             className={`relative group rounded-2xl px-4 py-3 shadow-sm transition-all duration-200
-    ${
-      isMine
-        ? "bg-blue-600 text-white rounded-tr-none shadow-blue-200/40 hover:shadow-md"
-        : "bg-white border border-gray-200 rounded-tl-none text-gray-800 hover:shadow-md"
-    }`}
+    ${isMine
+                                ? "bg-blue-600 text-white rounded-tr-none shadow-blue-200/40 hover:shadow-md"
+                                : "bg-white border border-gray-200 rounded-tl-none text-gray-800 hover:shadow-md"
+                              }`}
                           >
                             {/* Sender Name */}
                             {!isMine && (
@@ -667,6 +775,11 @@ export default function ChatPage({ params }: ChatPageProps) {
                                 <FiUser size={10} />
                                 {msg?.senderId?.username}
                               </div>
+                            )}
+
+                            {/* NEW: Reply Preview */}
+                            {msg.replyToSnapshot && (
+                              <ReplyPreview reply={msg.replyToSnapshot} />
                             )}
 
                             {/* Deleted Message */}
@@ -714,11 +827,10 @@ export default function ChatPage({ params }: ChatPageProps) {
                                     href={`${API_URL}${msg.fileUrl}`}
                                     download
                                     className={`flex items-center gap-3 p-3 rounded-xl border mb-2 transition-all no-underline
-            ${
-              isMine
-                ? "bg-blue-700/30 border-blue-400/30 text-white hover:bg-blue-700/40"
-                : "bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100"
-            }`}
+            ${isMine
+                                        ? "bg-blue-700/30 border-blue-400/30 text-white hover:bg-blue-700/40"
+                                        : "bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100"
+                                      }`}
                                   >
                                     <div
                                       className={`p-2 rounded-lg shrink-0
@@ -760,6 +872,12 @@ export default function ChatPage({ params }: ChatPageProps) {
                         {!msg.isDeleted && (
                           <ContextMenuContent className="w-48 font-semibold">
                             <ContextMenuItem
+                              onClick={() => handleReplyToMessage(msg)}
+                              className="gap-2"
+                            >
+                              <FiCornerUpLeft size={14} /> Reply
+                            </ContextMenuItem>
+                            <ContextMenuItem
                               onClick={() => copyToClipboard(msg?.text)}
                               className="gap-2"
                             >
@@ -768,8 +886,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                             <ContextMenuItem
                               onSelect={(e) => e.preventDefault()}
                             >
-                              {" "}
-                              <FiPhoneForwarded size={14} />{" "}
+                              <FiPhoneForwarded size={14} />
                               <ForwardeMessageModal messageToForward={msg} />
                             </ContextMenuItem>
 
@@ -834,7 +951,33 @@ export default function ChatPage({ params }: ChatPageProps) {
 
       {/* ---------- FOOTER ---------- */}
       <footer className="p-4 border-t bg-white z-20">
-        <div className="max-w-5xl mx-auto flex items-end gap-3">
+        {/* NEW: Reply Banner */}
+        {replyingTo && (
+          <div className="max-w-5xl mx-auto mb-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-3 flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold text-blue-600 mb-1">
+                Replying to {replyingTo?.senderId?.username}
+              </div>
+              <div className="text-sm text-gray-600 truncate">
+                {replyingTo.type === "text"
+                  ? replyingTo.text
+                  : replyingTo.type === "image"
+                    ? "📷 Photo"
+                    : replyingTo.type === "video"
+                      ? "🎬 Video"
+                      : `📎 ${replyingTo.fileName}`}
+              </div>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="ml-2 p-1 hover:bg-blue-100 rounded-full transition-colors"
+            >
+              <FiX size={16} className="text-gray-500" />
+            </button>
+          </div>
+        )}
+
+        <div className="max-w-5xl mx-auto flex items-center gap-3">
           <SettingDropdown />
           <div className="relative flex-1">
             <textarea
@@ -901,6 +1044,18 @@ export default function ChatPage({ params }: ChatPageProps) {
           </button>
         </div>
       </footer>
+
+      {/* NEW: Add CSS for highlight animation */}
+      <style jsx global>{`
+        @keyframes highlight {
+          0%, 100% { background-color: transparent; }
+          50% { background-color: rgba(59, 130, 246, 0.2); }
+        }
+        
+        .highlight-message {
+          animation: highlight 2s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

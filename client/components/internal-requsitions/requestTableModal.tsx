@@ -19,6 +19,7 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table"
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency } from "@/helper/currencyFormat"
 import { InternalRequisition } from "@/lib/internalRequestTypes"
 import { Button } from '../ui/button';
@@ -49,7 +50,7 @@ function RequestTableModal({ itemId }: { itemId: string }) {
             <DialogTrigger className=" hover:underline font-medium">
                 View Details
             </DialogTrigger>
-            <DialogContent className="w-full max-w-[90vw] sm:max-w-[90vw] overflow-y-auto">
+            <DialogContent className="w-full max-w-[90vw] sm:max-w-[90vw] max-h-[85vh] overflow-y-auto">
                 {loading ? (
                     <div className="p-10 text-center">Loading details...</div>
                 ) : data ? (
@@ -86,34 +87,36 @@ function RequestTableModal({ itemId }: { itemId: string }) {
 
                         <Separator className="my-4" />
 
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader className="bg-muted/50">
-                                    <TableRow>
-                                        <TableHead>Description</TableHead>
-                                        <TableHead className="text-center">Qty</TableHead>
-                                        <TableHead className="text-right">Unit Price</TableHead>
-                                        <TableHead className="text-right">Total</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {data.items.map((item) => (
-                                        <TableRow key={item._id}>
-                                            <TableCell className="font-medium">{item.description}</TableCell>
-                                            <TableCell className="text-center">{item.quantity}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+                        <ScrollArea className="max-h-[50vh]">
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader className="bg-muted/50">
+                                        <TableRow>
+                                            <TableHead>Description</TableHead>
+                                            <TableHead className="text-center">Qty</TableHead>
+                                            <TableHead className="text-right">Unit Price</TableHead>
+                                            <TableHead className="text-right">Total</TableHead>
                                         </TableRow>
-                                    ))}
-                                    <TableRow className="bg-muted/20 font-bold">
-                                        <TableCell colSpan={3} className="text-right">Grand Total</TableCell>
-                                        <TableCell className="text-right text-primary text-lg">
-                                            {formatCurrency(data.totalAmount)}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {data.items.map((item) => (
+                                            <TableRow key={item._id}>
+                                                <TableCell className="font-medium">{item.description}</TableCell>
+                                                <TableCell className="text-center">{item.quantity}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                        <TableRow className="bg-muted/20 font-bold">
+                                            <TableCell colSpan={3} className="text-right">Grand Total</TableCell>
+                                            <TableCell className="text-right text-primary text-lg">
+                                                {formatCurrency(data.totalAmount)}
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </ScrollArea>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                             <div className="p-4 rounded-lg bg-slate-50 border">

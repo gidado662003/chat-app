@@ -49,7 +49,7 @@ export default function InternalRequisitionSidebar() {
             <nav className="flex-1 space-y-1 px-3 py-4">
                 <NavItem href="/internal-requisitions" label="Dashboard" icon={<LayoutDashboard size={18} />} />
                 <NavItem href="/internal-requisitions/requisition-list" label="Requisitions" icon={<Users size={18} />} />
-                <NavItem href="/internal-requisitions/departments" label="Departments" icon={<MessageSquareText size={18} />} />
+                {/* <NavItem href="/internal-requisitions/departments" label="Departments" icon={<MessageSquareText size={18} />} /> */}
                 <NavItem href="/internal-requisitions/create-request" label="Create Request" icon={<Plus size={18} />} />
             </nav>
 

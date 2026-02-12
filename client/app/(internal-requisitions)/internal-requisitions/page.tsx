@@ -1,3 +1,23 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import { internlRequestAPI } from "@/lib/internalRequestApi";
+import Dashboard from "@/components/internal-requsitions/dashboard";
+import { DashboardData } from "@/lib/internalRequestTypes";
+function page() {
+  const [data, setData] = useState<DashboardData>();
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const res = await internlRequestAPI.getDashboardData();
+      console.log(res);
+      setData(res);
+    };
+    fetchDashboardData();
+  }, []);
+  return <>{data ? <Dashboard data={data} /> : <div>Loading...</div>}</>;
+}
+
+export default page;
+
 // "use client";
 
 // import { useEffect, useState } from "react";
@@ -608,12 +628,3 @@
 //         </div>
 //     );
 // }
-import React from 'react'
-
-function page() {
-    return (
-        <div>page </div>
-    )
-}
-
-export default page

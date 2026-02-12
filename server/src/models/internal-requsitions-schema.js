@@ -120,7 +120,8 @@ const requisitionSchema = new mongoose.Schema(
 );
 
 requisitionSchema.virtual("amountRemaining").get(function () {
-  const totalPaid = this.paymentHistory.reduce(
+  const history = this.paymentHistory || [];
+  const totalPaid = history.reduce(
     (sum, payment) => sum + (payment.amount || 0),
     0,
   );
@@ -128,7 +129,8 @@ requisitionSchema.virtual("amountRemaining").get(function () {
   return Math.max(0, (this.totalAmount || 0) - totalPaid);
 });
 requisitionSchema.virtual("totalAmmontPaid").get(function () {
-  const totalPaid = this.paymentHistory.reduce(
+  const history = this.paymentHistory || [];
+  const totalPaid = history.reduce(
     (sum, payment) => sum + (payment.amount || 0),
     0,
   );

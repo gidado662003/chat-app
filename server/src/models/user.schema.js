@@ -2,7 +2,23 @@
 const mongoose = require("mongoose");
 
 // Add to your User schema or create Chat schema
-
+const currentLocationSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point",
+    },
+    coordinates: {
+      type: [Number],
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
 const userSchema = new mongoose.Schema(
   {
     // Basic Info
@@ -58,7 +74,10 @@ const userSchema = new mongoose.Schema(
       maxlength: 200,
       default: "",
     },
-
+    location: {
+      type: currentLocationSchema,
+      default: null,
+    },
     // Status & Activity
     isOnline: {
       type: Boolean,
@@ -104,12 +123,13 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 // Index for performance
 userSchema.index({ isOnline: 1 });
 userSchema.index({ email: 1 });
 userSchema.index({ laravel_id: 1 });
+userSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("User", userSchema);

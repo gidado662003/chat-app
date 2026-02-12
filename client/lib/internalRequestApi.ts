@@ -124,5 +124,13 @@ export const internlRequestAPI = {
       console.error("Create request failed", error);
     }
   },
+  getDashboardData: async () => {
+    try {
+      const res = await requestApi.get("/internalrequest/dashboard/metrics");
+      return res.data;
+    } catch (error) {
+      console.error("Get dashboard data failed", error);
+    }
+  },
 };
 // /internalrequest/allrequest

@@ -321,7 +321,7 @@ export function GroupInfoModal({ chatId }: { chatId: string }) {
     try {
       const response = await createOrGetPrivateChat(userId);
       if (response && response.chat) {
-        router.push(`/${response.chat._id}`);
+        router.push(`chat/chats/${response.chat._id}`);
       }
     } catch (error) {
       console.error("Failed to create/get private chat:", error);

@@ -173,15 +173,14 @@ export default function RequestDetailsPage() {
               {request.title}
             </h1>
             <Badge
-              className={`px-3 py-1 capitalize border-2 ${
-                isFullyPaid
-                  ? "bg-green-100 text-green-700 border-green-200"
-                  : request.status === "outstanding"
-                    ? "bg-amber-100 text-amber-700 border-amber-200"
-                    : request.status === "rejected"
-                      ? "bg-red-100 text-red-700 border-red-200"
-                      : "bg-blue-50 text-blue-700 border-blue-200"
-              }`}
+              className={`px-3 py-1 capitalize border-2 ${isFullyPaid
+                ? "bg-green-100 text-green-700 border-green-200"
+                : request.status === "outstanding"
+                  ? "bg-amber-100 text-amber-700 border-amber-200"
+                  : request.status === "rejected"
+                    ? "bg-red-100 text-red-700 border-red-200"
+                    : "bg-blue-50 text-blue-700 border-blue-200"
+                }`}
             >
               {isFullyPaid ? "Fully Paid" : request.status}
             </Badge>
@@ -243,7 +242,7 @@ export default function RequestDetailsPage() {
                 <TableBody>
                   {request.items.map((item) => (
                     <TableRow key={item._id}>
-                      <TableCell className="pl-6 font-medium">
+                      <TableCell title={item.description} className="pl-6 font-medium truncate max-w-[200px]">
                         {item.description}
                       </TableCell>
                       <TableCell className="text-center">
@@ -311,42 +310,54 @@ export default function RequestDetailsPage() {
                 </div>
               </CardContent>
             </Card>
+
+          </div>
+          <div className="mt-4">
             {request.attachments.length > 0 && (
-              <Card className="shadow-sm border-slate-200">
-                <CardHeader className="border-b bg-slate-50/50">
+              <Card className="shadow-sm border-slate-200 overflow-hidden">
+                <CardHeader className="border-b bg-slate-50/60 flex items-center justify-between">
                   <CardTitle className="text-sm font-bold flex items-center gap-2">
                     ATTACHMENTS
                     <Badge variant="secondary" className="rounded-full">
                       {request.attachments.length}
                     </Badge>
                   </CardTitle>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Click to preview
+                  </span>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {request.attachments.map((file, idx) => (
-                      <div
-                        key={idx}
-                        className="group relative overflow-hidden rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200"
-                      >
-                        <img
-                          src={`http://10.10.253.3:5001${file}`}
-                          alt={`Attachment ${idx + 1}`}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <a
-                              href={`http://10.10.253.3:5001${file}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="bg-white text-slate-900 px-3 py-1 rounded text-xs font-semibold hover:bg-slate-100"
-                            >
-                              View
-                            </a>
+                <CardContent className="pt-4">
+                  <div className="max-h-[22rem] overflow-y-auto pr-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {request.attachments.map((file, idx) => (
+                        <div
+                          key={idx}
+                          className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200"
+                        >
+                          <img
+                            src={`http://10.10.253.3:5001${file}`}
+                            alt={`Attachment ${idx + 1}`}
+                            className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-200"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                          <div className="absolute inset-0 flex flex-col justify-end p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-semibold text-white/90">
+                                Attachment {idx + 1}
+                              </span>
+                              <a
+                                href={`http://10.10.253.3:5001${file}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-white/95 text-slate-900 px-3 py-1 rounded-full text-[10px] font-semibold shadow-sm hover:bg-slate-100"
+                              >
+                                View
+                              </a>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -50,9 +50,6 @@ io.on("connection", async (socket) => {
     socket.leave(chatId);
   });
 
-  // User is online
-  // socket.on("user_is_online", (userId, isConnectd) => { })
-
   // Update pin message
   socket.on("update_pin", async ({ chatId, messageId, action }) => {
     try {
@@ -67,6 +64,7 @@ io.on("connection", async (socket) => {
       socket.emit("error", { message: "Failed to update pin status" });
     }
   });
+
   // Delete message
   socket.on("message_delete", async ({ messageId, chatId }) => {
     io.to(chatId).emit("message_was_deleted", {
@@ -94,8 +92,7 @@ io.on("connection", async (socket) => {
       if (result.modifiedCount > 0) {
         socket.to(chatId).emit("messages_read", { chatId, userId });
 
-        // 2. Tell the Sidebars EVERYWHERE to refresh their lists
-        // We send the chatId so sidebars know which chat changed
+        // Tell the Sidebars to refresh their lists
         io.emit("chat_list_update", { chatId, userId, reason: "read_receipt" });
       }
     } catch (err) {
@@ -103,29 +100,71 @@ io.on("connection", async (socket) => {
     }
   });
 
-  // Send message
+  // Send message with reply support
   socket.on("send_message", async (data) => {
     try {
+      // Prepare reply snapshot if this is a reply
+      let replyToSnapshot = null;
+
+      if (data.replyToMessageId) {
+        try {
+          const originalMessage = await Message.findById(
+            data.replyToMessageId,
+          ).populate("senderId", "username _id");
+
+          if (originalMessage) {
+            // Create snapshot of the original message
+            replyToSnapshot = {
+              _id: originalMessage._id.toString(),
+              text: originalMessage.text || "",
+              type: originalMessage.type || "text",
+              fileName: originalMessage.fileName,
+              fileUrl: originalMessage.fileUrl,
+              senderId: {
+                _id: originalMessage.senderId._id.toString(),
+                username: originalMessage.senderId.username,
+              },
+              createdAt: originalMessage.createdAt,
+            };
+          }
+        } catch (replyError) {
+          console.error("Error fetching reply message:", replyError);
+          // Continue without reply if original message not found
+        }
+      }
+
+      // Prepare message data
       const messageData = {
         text: data.text,
         senderId: data.senderId,
         chatId: data.chatId,
         createdAt: data.timestamp || new Date().toISOString(),
         readBy: [data.senderId],
-        type: data.type,
+        type: data.type || "text",
         fileUrl: data.fileUrl,
+        fileName: data.fileName,
+
         // Forwarded message fields
         forwardedMessage: data.forwardedMessage || false,
         forwardedFrom: data.forwardedFrom || null,
         originalSender: data.originalSender || null,
         originalChatId: data.originalChatId || null,
+
+        // Reply fields
+        replyTo: data.replyToMessageId || null,
+        replyToSnapshot: replyToSnapshot,
       };
 
+      // Create the new message
       const newMessage = await Message.create(messageData);
 
+      // Update chat with new message
       if (data.chatId) {
         const chat = await Chat.findById(data.chatId);
-        if (!chat) return;
+        if (!chat) {
+          console.error("Chat not found:", data.chatId);
+          return;
+        }
 
         if (chat.type === "group") {
           chat.groupMessages.push(newMessage._id);
@@ -136,17 +175,20 @@ io.on("connection", async (socket) => {
         }
         await chat.save();
 
+        // Populate message for sending to clients
         const populatedMessage = await Message.findById(newMessage._id)
-          .populate("senderId", "username avatar")
-          .populate("readBy", "username avatar")
+          .populate("senderId", "username avatar email _id")
+          .populate("readBy", "username avatar email _id")
           .populate("originalSender", "username avatar")
           .populate("forwardedFrom");
 
+        // Broadcast message to chat room
         io.to(data.chatId).emit("receive_message", {
           ...populatedMessage.toObject(),
           chatId: data.chatId,
         });
 
+        // Update chat list for all users
         io.emit("chat_list_update", {
           chatId: data.chatId,
           lastMessage: {
@@ -160,6 +202,10 @@ io.on("connection", async (socket) => {
       }
     } catch (err) {
       console.error("send_message error:", err);
+      socket.emit("error", {
+        message: "Failed to send message",
+        error: err.message,
+      });
     }
   });
 

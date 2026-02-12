@@ -36,6 +36,26 @@ const messageSchema = new mongoose.Schema(
       ref: "Chat",
       default: null,
     },
+
+    // Reply TO
+     replyTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Message',
+    default: null
+  },
+  
+  replyToSnapshot: {
+    _id: String,
+    text: String,
+    type: { type: String, enum: ['text', 'image', 'video', 'file'] },
+    fileName: String,
+    fileUrl: String,
+    senderId: {
+      _id: String,
+      username: String
+    },
+    createdAt: Date
+  },
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
