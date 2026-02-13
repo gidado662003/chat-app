@@ -28,7 +28,7 @@ export default function MeetingListBox() {
           <MeetingPreviewCard
             key={meeting._id}
             meeting={meeting}
-            nextCursor={nextCursor}
+            // nextCursor={nextCursor}
           />
         </div>
       ))}
