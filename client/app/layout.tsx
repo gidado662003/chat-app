@@ -2,7 +2,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import LayoutClient from "./LayoutClient";
-import { useDisplayMode } from "@/lib/store";
 
 export const metadata: Metadata = {
   title: "syscodes Tools",

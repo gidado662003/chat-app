@@ -62,7 +62,11 @@ const requisitionSchema = new mongoose.Schema(
     title: { type: String, required: true },
     department: { type: String, required: true },
     location: { type: String, required: true },
-    category: { type: String, required: true },
+    category: {
+      type: String,
+      required: true,
+      enum: ["expenses", "equipment-procured", "refunds", "other"],
+    },
 
     requestedOn: { type: Date, default: Date.now },
     approvedOn: { type: Date, default: null },

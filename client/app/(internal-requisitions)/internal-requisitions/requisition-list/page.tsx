@@ -8,6 +8,7 @@ import { CountList, InternalRequisition } from "@/lib/internalRequestTypes";
 import RequestTable from "@/components/internal-requsitions/requestTable";
 import InputSearch from "@/components/internal-requsitions/inputSearch";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { set } from "date-fns";
 
 function RequisitionListContent() {
@@ -164,7 +165,7 @@ function RequisitionListContent() {
       <main>
         <div className="flex items-center gap-3">
           <InputSearch onSearch={(value) => setSearchInput(value)} />
-          <button
+          <Button
             onClick={() => {
               setSearchInput("");
               setStatusData("");
@@ -172,7 +173,7 @@ function RequisitionListContent() {
             className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-mdext-gray-600  hover:bg-gray-100 hover:text-gray-800 transition-colors "
           >
             Clear
-          </button>
+          </Button>
         </div>
         <RequestTable
           data={data}

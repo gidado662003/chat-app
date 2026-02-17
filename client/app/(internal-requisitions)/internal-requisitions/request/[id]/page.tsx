@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
-import Image from "next/image";
 import {
   Table,
   TableBody,
@@ -83,29 +82,32 @@ export default function RequestDetailsPage() {
 
   if (loading)
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">
-          Loading Requisition...
-        </p>
-      </div>
+      <Card className="flex flex-col items-center justify-center min-h-[400px] space-y-4 border-0 shadow-none">
+        <CardContent className="flex flex-col items-center space-y-4 pt-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse">
+            Loading Requisition...
+          </p>
+        </CardContent>
+      </Card>
     );
 
   if (!request)
     return (
-      <div className="p-20 text-center">
-        <h2 className="text-xl font-semibold text-red-500">
-          Request not found
-        </h2>
-        <Button
-          variant="link"
-          onClick={() => router.push("/internal-requisitions")}
-        >
-          Go Back
-        </Button>
-      </div>
+      <Card className="p-20 text-center border-0 shadow-none">
+        <CardContent className="space-y-4">
+          <h2 className="text-xl font-semibold text-red-500">
+            Request not found
+          </h2>
+          <Button
+            variant="link"
+            onClick={() => router.push("/internal-requisitions")}
+          >
+            Go Back
+          </Button>
+        </CardContent>
+      </Card>
     );
-  console.log();
 
   // Derived calculations
   const totalPaid = request.paymentHistory.reduce(
@@ -168,69 +170,73 @@ export default function RequestDetailsPage() {
   };
 
   return (
-    <div className="">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-6 rounded-xl border shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl md:text-3xl font-extrabold">
-              {request.title}
-            </h1>
-            <Badge
-              className={`px-3 py-1 capitalize border-2 ${
-                isFullyPaid
-                  ? "bg-green-100 text-green-700 border-green-200"
-                  : request.status === "outstanding"
-                    ? "bg-amber-100 text-amber-700 border-amber-200"
-                    : request.status === "rejected"
-                      ? "bg-red-100 text-red-700 border-red-200"
-                      : "bg-blue-50 text-blue-700 border-blue-200"
-              }`}
-            >
-              {isFullyPaid ? "Fully Paid" : request.status}
-            </Badge>
-          </div>
-          <p className="text-muted-foreground font-mono text-sm">
-            {request.requisitionNumber}
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Header Card */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl md:text-3xl font-extrabold">
+                  {request.title}
+                </h1>
+                <Badge
+                  className={`px-3 py-1 capitalize border-2 ${
+                    isFullyPaid
+                      ? "bg-green-100 text-green-700 border-green-200"
+                      : request.status === "outstanding"
+                        ? "bg-amber-100 text-amber-700 border-amber-200"
+                        : request.status === "rejected"
+                          ? "bg-red-100 text-red-700 border-red-200"
+                          : "bg-blue-50 text-blue-700 border-blue-200"
+                  }`}
+                >
+                  {isFullyPaid ? "Fully Paid" : request.status}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground font-mono text-sm">
+                {request.requisitionNumber}
+              </p>
+            </div>
 
-        <div className="flex items-center gap-4">
-          <div className="text-right px-4 py-2 border-r">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              Requested
-            </p>
-            <p className="text-xl font-bold">
-              {formatCurrency(request.totalAmount)}
-            </p>
+            <div className="flex items-center gap-4">
+              <div className="text-right px-4 py-2 border-r">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Requested
+                </p>
+                <p className="text-xl font-bold">
+                  {formatCurrency(request.totalAmount)}
+                </p>
+              </div>
+              <div className="text-right px-4 py-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Remaining
+                </p>
+                <p
+                  className={`text-xl font-black ${amountRemaining > 0 ? "text-red-600" : "text-green-600"}`}
+                >
+                  {formatCurrency(amountRemaining)}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="text-right px-4 py-2">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              Remaining
-            </p>
-            <p
-              className={`text-xl font-black ${amountRemaining > 0 ? "text-red-600" : "text-green-600"}`}
-            >
-              {formatCurrency(amountRemaining)}
-            </p>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <div
         className={`grid grid-cols-1 ${canProcess ? "lg:grid-cols-12" : "lg:grid-cols-1"} gap-8`}
       >
         {/* LEFT COL */}
         <div className={`${canProcess ? "lg:col-span-8" : "w-full"} space-y-6`}>
-          {/* Items */}
+          {/* Items Card */}
           <Card className="shadow-sm border-slate-200 overflow-hidden">
-            <CardHeader className="border-b bg-slate-50/50 flex items-center justify-between">
+            <CardHeader className="border-b  flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 REQUEST ITEMS
               </CardTitle>
               <div className="flex flex-col items-end gap-1 w-32 md:w-48">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  {Math.round(paymentProgress)}% Payed
+                  {Math.round(paymentProgress)}% Paid
                 </span>
                 <Progress value={paymentProgress} className="h-1.5" />
               </div>
@@ -238,7 +244,7 @@ export default function RequestDetailsPage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50/30">
+                  <TableRow className="">
                     <TableHead className="pl-6">Description</TableHead>
                     <TableHead className="text-center">Qty</TableHead>
                     <TableHead className="text-right pr-6">Total</TableHead>
@@ -261,7 +267,7 @@ export default function RequestDetailsPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  <TableRow className="bg-slate-50/50 font-bold border-t-2">
+                  <TableRow className="bg-slate-50/50 dark:bg-slate-900/80 font-bold border-t-2">
                     <TableCell
                       colSpan={2}
                       className="text-right pl-6 uppercase text-xs text-muted-foreground"
@@ -277,9 +283,9 @@ export default function RequestDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Requester Info */}
+          {/* Requester Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="bg-white">
+            <Card className=" border-slate-200">
               <CardContent className="pt-6 space-y-4">
                 <div>
                   <Label className="text-[10px] uppercase font-black text-muted-foreground">
@@ -300,7 +306,7 @@ export default function RequestDetailsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white">
+            <Card className=" border-slate-200">
               <CardContent className="pt-6 space-y-4">
                 <div>
                   <Label className="text-[10px] uppercase font-black text-muted-foreground">
@@ -319,28 +325,30 @@ export default function RequestDetailsPage() {
               </CardContent>
             </Card>
           </div>
-          <div className="mt-4">
-            {request.attachments.length > 0 && (
-              <Card className="shadow-sm border-slate-200 overflow-hidden">
-                <CardHeader className="border-b bg-slate-50/60 flex items-center justify-between">
-                  <CardTitle className="text-sm font-bold flex items-center gap-2">
-                    ATTACHMENTS
-                    <Badge variant="secondary" className="rounded-full">
-                      {request.attachments.length}
-                    </Badge>
-                  </CardTitle>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                    Click to preview
-                  </span>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <div className="max-h-[22rem] overflow-y-auto pr-1">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {request.attachments.map((file, idx) => (
-                        <div
-                          key={idx}
-                          className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200"
-                        >
+
+          {/* Attachments Card */}
+          {request.attachments.length > 0 && (
+            <Card className="shadow-sm border-slate-200 overflow-hidden">
+              <CardHeader className="border-b  flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  ATTACHMENTS
+                  <Badge variant="secondary" className="rounded-full">
+                    {request.attachments.length}
+                  </Badge>
+                </CardTitle>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Click to preview
+                </span>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="max-h-[22rem] overflow-y-auto pr-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {request.attachments.map((file, idx) => (
+                      <Card
+                        key={idx}
+                        className="group relative overflow-hidden border-slate-200  shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200"
+                      >
+                        <CardContent className="p-0 relative">
                           <img
                             src={`http://10.10.253.3:5001${file}`}
                             alt={`Attachment ${idx + 1}`}
@@ -362,167 +370,190 @@ export default function RequestDetailsPage() {
                               </a>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Payment History */}
+          {/* Payment History for non-finance users */}
           {!canProcess && (
-            <PaymentHistoryTable request={request} totalPaid={totalPaid} />
+            <PaymentHistoryCard request={request} totalPaid={totalPaid} />
           )}
         </div>
 
         {/* RIGHT COL: Finance Actions */}
         {canProcess && (
           <div className="lg:col-span-4">
-            <Card className="border-blue-200 shadow-xl ring-1 ring-blue-500/10">
+            <Card className="border-blue-200 shadow-xl ring-1 ring-blue-500/10 sticky top-6">
               <CardHeader className="bg-blue-600 text-white rounded-t-xl py-4">
-                <CardTitle className="text-xs font-black uppercase tracking-widest"></CardTitle>
+                <CardTitle className="text-xs font-black uppercase tracking-widest">
+                  FINANCE ACTIONS
+                </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
                 {/* Beneficiary */}
-                <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
-                  <Label className="text-[10px] font-black text-blue-700 uppercase">
-                    Beneficiary Details
-                  </Label>
-                  <p className="text-sm font-bold text-blue-900 truncate">
-                    {request.accountToPay?.accountName}
-                  </p>
-                  <p className="text-lg font-mono font-bold text-blue-950 tracking-tighter">
-                    {request.accountToPay?.accountNumber}
-                  </p>
-                  <p className="text-xs font-medium text-blue-700">
-                    {request.accountToPay?.bankName}
-                  </p>
-                </div>
+                <Card className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                  <CardContent className="p-0 space-y-1">
+                    <Label className="text-[10px] font-black text-blue-700 uppercase">
+                      Beneficiary Details
+                    </Label>
+                    <p className="text-sm font-bold text-blue-900 truncate">
+                      {request.accountToPay?.accountName}
+                    </p>
+                    <p className="text-lg font-mono font-bold text-blue-950 tracking-tighter">
+                      {request.accountToPay?.accountNumber}
+                    </p>
+                    <p className="text-xs font-medium text-blue-700">
+                      {request.accountToPay?.bankName}
+                    </p>
+                  </CardContent>
+                </Card>
 
                 <Separator />
 
                 {/* Payment Input */}
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    Source Bank
-                  </Label>
-                  <Select onValueChange={setSelectedBank} value={selectedBank}>
-                    <SelectTrigger className="w-full bg-white">
-                      <SelectValue placeholder="Select Source Account" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COMPANY_BANKS.map((bank) => (
-                        <SelectItem key={bank.id} value={bank.id}>
-                          {bank.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    Payment Method
-                  </Label>
-                  <RadioGroup
-                    onValueChange={(value: "bank" | "cheque") =>
-                      setPaymentMethod(value as "bank" | "cheque")
-                    }
-                    value={paymentMethod}
-                    className="flex gap-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="bank" id="bank" />
-                      <Label htmlFor="bank">Transfer</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="cheque" id="cheque" />
-                      <Label htmlFor="cheque">Cheque</Label>
-                    </div>
-                  </RadioGroup>
-
-                  {/* Amount */}
-                  <div className="p-3 rounded-lg border bg-slate-50 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-[10px] font-bold uppercase">
-                        Amount
-                      </Label>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setManualAmount(manualAmount === null ? "" : null)
-                        }
-                        className="text-[10px] font-bold text-blue-600 underline"
-                      >
-                        {manualAmount === null ? "Manual" : "Full"}
-                      </button>
-                    </div>
-                    {manualAmount !== null ? (
-                      <Input
-                        type="number"
-                        value={manualAmount}
-                        onChange={(e) => setManualAmount(e.target.value)}
-                      />
-                    ) : (
-                      <p className="text-xl font-black">
-                        {formatCurrency(amountRemaining)}
-                      </p>
-                    )}
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      Source Bank
+                    </Label>
+                    <Select
+                      onValueChange={setSelectedBank}
+                      value={selectedBank}
+                    >
+                      <SelectTrigger className="w-full bg-white">
+                        <SelectValue placeholder="Select Source Account" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COMPANY_BANKS.map((bank) => (
+                          <SelectItem key={bank.id} value={bank.id}>
+                            {bank.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      Payment Method
+                    </Label>
+                    <RadioGroup
+                      onValueChange={(value: "bank" | "cheque") =>
+                        setPaymentMethod(value)
+                      }
+                      value={paymentMethod}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="bank" id="bank" />
+                        <Label htmlFor="bank">Transfer</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="cheque" id="cheque" />
+                        <Label htmlFor="cheque">Cheque</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Amount */}
+                  <Card className="p-3 border ">
+                    <CardContent className="p-0 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] font-bold uppercase">
+                          Amount
+                        </Label>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setManualAmount(manualAmount === null ? "" : null)
+                          }
+                          className="text-[10px] font-bold text-blue-600 underline"
+                        >
+                          {manualAmount === null
+                            ? "Enter Manual Amount"
+                            : "Use Full Amount"}
+                        </button>
+                      </div>
+                      {manualAmount !== null ? (
+                        <Input
+                          type="number"
+                          value={manualAmount}
+                          onChange={(e) => setManualAmount(e.target.value)}
+                          placeholder="Enter amount"
+                        />
+                      ) : (
+                        <p className="text-xl font-black">
+                          {formatCurrency(amountRemaining)}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+
                   {/* Notes */}
-                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    Payment Notes
-                  </Label>
-                  <Textarea
-                    placeholder="Enter transaction ID or notes..."
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                  />
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      Payment Notes
+                    </Label>
+                    <Textarea
+                      placeholder="Enter transaction ID or notes..."
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                  </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-col gap-2 pt-2">
-                  <Button
-                    disabled={isSubmitting}
-                    onClick={() =>
-                      handleAction(
-                        isPartialPayment ? "outstanding" : "approved",
-                      )
-                    }
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold h-12 shadow-md"
-                  >
-                    {isSubmitting && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    {isPartialPayment ? "Partial Payment" : "Full Payment"}
-                  </Button>
+                <Card className="p-0 border-0 shadow-none">
+                  <CardContent className="p-0 space-y-2">
+                    <Button
+                      disabled={isSubmitting}
+                      onClick={() =>
+                        handleAction(
+                          isPartialPayment ? "outstanding" : "approved",
+                        )
+                      }
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-12 shadow-md"
+                    >
+                      {isSubmitting && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      {isPartialPayment
+                        ? "Process Partial Payment"
+                        : "Process Full Payment"}
+                    </Button>
 
-                  <Button
-                    disabled={isSubmitting}
-                    variant="ghost"
-                    onClick={() => handleAction("rejected")}
-                    className="text-red-500 hover:bg-red-50 hover:text-red-600 text-xs font-bold"
-                  >
-                    Decline Requisition
-                  </Button>
-                </div>
+                    <Button
+                      disabled={isSubmitting}
+                      variant="ghost"
+                      onClick={() => handleAction("rejected")}
+                      className="w-full text-red-500 hover:bg-red-50 hover:text-red-600 text-xs font-bold"
+                    >
+                      Decline Requisition
+                    </Button>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </div>
         )}
       </div>
 
-      {/* Payment History Table if processing */}
+      {/* Payment History Card for finance users */}
       {canProcess && (
-        <PaymentHistoryTable request={request} totalPaid={totalPaid} />
+        <PaymentHistoryCard request={request} totalPaid={totalPaid} />
       )}
     </div>
   );
 }
 
-// Payment History Table Component
-function PaymentHistoryTable({
+// Payment History Card Component
+function PaymentHistoryCard({
   request,
   totalPaid,
 }: {
@@ -530,22 +561,23 @@ function PaymentHistoryTable({
   totalPaid: number;
 }) {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 px-1">
-        <History className="h-5 w-5 text-slate-400" />
-        <h2 className="text-xl font-bold text-slate-800 tracking-tight">
-          Payment Ledger
-        </h2>
-        <Badge variant="secondary" className="rounded-full font-mono">
-          {request.paymentHistory?.length || 0}
-        </Badge>
-      </div>
-
-      <Card className="overflow-hidden border-slate-200 shadow-sm">
+    <Card className="border-slate-200 shadow-sm overflow-hidden">
+      <CardHeader className="bg-slate-50/80 dark:bg-slate-900 border-b flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <History className="h-5 w-5 text-slate-400" />
+          <CardTitle className="text-xl font-bold  tracking-tight">
+            Payment Ledger
+          </CardTitle>
+          <Badge variant="secondary" className="rounded-full font-mono">
+            {request.paymentHistory?.length || 0}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
         <Table>
-          <TableHeader className="bg-slate-50">
+          <TableHeader className="bg-slate-50 dark:bg-slate-900/80">
             <TableRow>
-              <TableHead>Timestamp</TableHead>
+              <TableHead className="pl-6">Timestamp</TableHead>
               <TableHead>Source Bank</TableHead>
               <TableHead>Method</TableHead>
               <TableHead>Processed By</TableHead>
@@ -557,9 +589,9 @@ function PaymentHistoryTable({
               request.paymentHistory.map((log, idx) => (
                 <TableRow
                   key={idx}
-                  className="hover:bg-slate-50/50 transition-colors"
+                  className="hover:bg-slate-50/50 dark:bg-slate-900/80 transition-colors"
                 >
-                  <TableCell className="text-xs text-slate-500">
+                  <TableCell className="pl-6 text-xs text-slate-500">
                     {formatDate(log.date)}
                   </TableCell>
                   <TableCell className="font-semibold text-slate-700">
@@ -582,26 +614,26 @@ function PaymentHistoryTable({
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="text-center py-4 text-muted-foreground text-sm"
+                  className="text-center py-8 text-muted-foreground text-sm"
                 >
-                  No Payment History
+                  No payment history available
                 </TableCell>
               </TableRow>
             )}
-            <TableRow className="border-t-2 font-bold">
+            <TableRow className="border-t-2 bg-slate-50/50 dark:bg-slate-900/80 font-bold">
               <TableCell
                 colSpan={4}
-                className="text-right pr-6 uppercase text-xs text-muted-foreground"
+                className="text-right pl-6 uppercase text-xs text-muted-foreground"
               >
                 Total Paid
               </TableCell>
-              <TableCell className="text-right pr-6 font-mono">
+              <TableCell className="text-right pr-6 font-mono text-lg">
                 {formatCurrency(totalPaid)}
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

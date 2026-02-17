@@ -50,7 +50,12 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-import type { User, Message, GroupInfo, ReplyToSnapshot } from "@/lib/chatTypes";
+import type {
+  User,
+  Message,
+  GroupInfo,
+  ReplyToSnapshot,
+} from "@/lib/chatTypes";
 
 interface ChatPageProps {
   params: Promise<{ id: string }>;
@@ -130,11 +135,11 @@ export default function ChatPage({ params }: ChatPageProps) {
     messageSearchQuery.trim() === ""
       ? messages
       : messages.filter((msg) => {
-        const q = messageSearchQuery.toLowerCase();
-        const text = (msg.text ?? "").toLowerCase();
-        const fileName = (msg.fileName ?? "").toLowerCase();
-        return text.includes(q) || fileName.includes(q);
-      });
+          const q = messageSearchQuery.toLowerCase();
+          const text = (msg.text ?? "").toLowerCase();
+          const fileName = (msg.fileName ?? "").toLowerCase();
+          return text.includes(q) || fileName.includes(q);
+        });
 
   const groupedMessages = messagesToShow.reduce(
     (acc: Record<string, Message[]>, msg) => {
@@ -673,7 +678,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-0.5">
                             <span className="text-xs font-semibold text-gray-800 truncate">
-                              {pinnedMsg.senderId.username}
+                              {pinnedMsg?.senderId?.username}
                             </span>
                             <span className="text-[10px] text-gray-600 shrink-0 ml-1">
                               {new Date(pinnedMsg.createdAt).toLocaleDateString(
@@ -764,10 +769,11 @@ export default function ChatPage({ params }: ChatPageProps) {
                         <ContextMenuTrigger className="max-w-[88%] sm:max-w-[70%] transition-all">
                           <div
                             className={`relative group rounded-2xl px-4 py-3 shadow-sm transition-all duration-200
-    ${isMine
-                                ? "bg-blue-600 text-white rounded-tr-none shadow-blue-200/40 hover:shadow-md"
-                                : "bg-white border border-gray-200 rounded-tl-none text-gray-800 hover:shadow-md"
-                              }`}
+    ${
+      isMine
+        ? "bg-blue-600 text-white rounded-tr-none shadow-blue-200/40 hover:shadow-md"
+        : "bg-white border border-gray-200 rounded-tl-none text-gray-800 hover:shadow-md"
+    }`}
                           >
                             {/* Sender Name */}
                             {!isMine && (
@@ -827,10 +833,11 @@ export default function ChatPage({ params }: ChatPageProps) {
                                     href={`${API_URL}${msg.fileUrl}`}
                                     download
                                     className={`flex items-center gap-3 p-3 rounded-xl border mb-2 transition-all no-underline
-            ${isMine
-                                        ? "bg-blue-700/30 border-blue-400/30 text-white hover:bg-blue-700/40"
-                                        : "bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100"
-                                      }`}
+            ${
+              isMine
+                ? "bg-blue-700/30 border-blue-400/30 text-white hover:bg-blue-700/40"
+                : "bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100"
+            }`}
                                   >
                                     <div
                                       className={`p-2 rounded-lg shrink-0
@@ -1048,10 +1055,15 @@ export default function ChatPage({ params }: ChatPageProps) {
       {/* NEW: Add CSS for highlight animation */}
       <style jsx global>{`
         @keyframes highlight {
-          0%, 100% { background-color: transparent; }
-          50% { background-color: rgba(59, 130, 246, 0.2); }
+          0%,
+          100% {
+            background-color: transparent;
+          }
+          50% {
+            background-color: rgba(59, 130, 246, 0.2);
+          }
         }
-        
+
         .highlight-message {
           animation: highlight 2s ease-in-out;
         }
