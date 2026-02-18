@@ -2,6 +2,8 @@ const Product = require("../models/product.schema");
 const Inventory = require("../models/inventory.schema");
 const Asset = require("../models/asset.schema");
 const ProcurementBatch = require("../models/productBatch.schema");
+const InventoryMovement = require("../models/inventoryMovement.schema");
+const AssetHistory = require("../models/assetHistory.schema");
 
 async function createProductsFromRequest(request) {
   console.log("Creating products from request:", request._id);
@@ -54,13 +56,27 @@ async function createProductsFromRequest(request) {
 }
 
 async function getBatchProducts() {
-  const batches = await ProcurementBatch.find({ status: "awaiting_receipt" })
+  const batches = await ProcurementBatch.find({
+    status: { $in: ["awaiting_receipt", "partially_received"] },
+  })
     .populate("product")
     .populate("requisition");
   return batches;
 }
 
-async function getBatchProduct(id, quantity, serialNumbers = []) {
+async function getBatchById(id) {
+  const batch = await ProcurementBatch.findById(id)
+    .populate("product")
+    .populate("requisition");
+  return batch;
+}
+
+async function getBatchProduct(
+  id,
+  quantity,
+  serialNumbers = [],
+  performedBy = {},
+) {
   const batch = await ProcurementBatch.findById(id).populate("product");
   if (!batch) {
     throw new Error("Batch product not found");
@@ -90,6 +106,10 @@ async function getBatchProduct(id, quantity, serialNumbers = []) {
   await batch.save();
 
   if (!batch.product.trackIndividually) {
+    const inv = await Inventory.findOne({ product: batch.product._id });
+    const previousQty = inv?.quantity ?? 0;
+    const newQty = previousQty + quantity;
+
     await Inventory.findOneAndUpdate(
       { product: batch.product._id },
       {
@@ -98,13 +118,36 @@ async function getBatchProduct(id, quantity, serialNumbers = []) {
       },
       { upsert: true },
     );
+
+    await InventoryMovement.create({
+      product: batch.product._id,
+      type: "PROCUREMENT",
+      quantity,
+      previousQuantity: previousQty,
+      newQuantity: newQty,
+      reference: batch._id,
+      referenceModel: "ProcurementBatch",
+      location: batch.location,
+      performedBy:
+        performedBy?.name || performedBy?.email ? performedBy : undefined,
+    });
   } else {
     for (let i = 0; i < quantity; i++) {
-      await Asset.create({
+      const asset = await Asset.create({
         product: batch.product._id,
         status: "IN_STOCK",
         location: batch.location,
         serialNumber: serialNumbers[i] || "",
+      });
+
+      await AssetHistory.create({
+        asset: asset._id,
+        action: "CREATED",
+        newStatus: "IN_STOCK",
+        newLocation: batch.location,
+        performedBy:
+          performedBy?.name || performedBy?.email ? performedBy : undefined,
+        notes: serialNumbers[i] ? `Serial: ${serialNumbers[i]}` : undefined,
       });
     }
   }
@@ -124,6 +167,7 @@ async function getAssets() {
 
 module.exports = {
   getBatchProducts,
+  getBatchById,
   getBatchProduct,
   createProductsFromRequest,
   getInventory,

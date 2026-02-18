@@ -10,6 +10,7 @@ import { inventoryAPI } from "@/lib/inventoryApi";
 import type { Asset } from "@/lib/inventoryTypes";
 import { formatDate } from "@/helper/dateFormat";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 function statusVariant(status: Asset["status"]) {
   switch (status) {
@@ -100,6 +101,11 @@ export default function AssetProductDetailPage() {
     ),
     updatedAt: (
       <span className="text-muted-foreground">{formatDate(a.updatedAt)}</span>
+    ),
+    history: (
+      <Button variant="link" size="sm" asChild>
+        <Link href={`/inventory/assets/history/${a._id}`}>History</Link>
+      </Button>
     ),
   }));
 
@@ -214,6 +220,7 @@ export default function AssetProductDetailPage() {
               { key: "assignedEmail", label: "Email" },
               { key: "createdAt", label: "Created" },
               { key: "updatedAt", label: "Updated" },
+              { key: "history", label: "" },
             ]}
             data={rows}
             getRowKey={(_, i) => filtered[i]?._id ?? i}

@@ -1,5 +1,11 @@
 import axios from "axios";
-import type { Asset, InventoryItem, ProcurementBatch } from "@/lib/inventoryTypes";
+import type {
+  Asset,
+  AssetHistory,
+  InventoryItem,
+  InventoryMovement,
+  ProcurementBatch,
+} from "@/lib/inventoryTypes";
 
 const inventoryApi = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
@@ -25,9 +31,39 @@ export const inventoryAPI = {
     return res.data;
   },
 
+  getBatchById: async (batchId: string): Promise<ProcurementBatch> => {
+    const res = await inventoryApi.get<ProcurementBatch>(
+      `/procurement-batches/${batchId}`
+    );
+    return res.data;
+  },
+
+  getInventoryMovements: async (
+    productId?: string,
+  ): Promise<InventoryMovement[]> => {
+    const res = await inventoryApi.get<InventoryMovement[]>(
+      "/inventory-movements",
+      {
+        params: productId ? { productId } : undefined,
+      },
+    );
+    return res.data;
+  },
+
+  getAssetHistory: async (assetId: string): Promise<AssetHistory[]> => {
+    const res = await inventoryApi.get<AssetHistory[]>(
+      `/asset-history/${assetId}`,
+    );
+    return res.data;
+  },
+
   receiveBatch: async (
     batchId: string,
-    payload: { quantity: number; serialNumbers?: string[] }
+    payload: {
+      quantity: number;
+      serialNumbers?: string[];
+      performedBy?: { name?: string; email?: string };
+    }
   ): Promise<ProcurementBatch> => {
     const res = await inventoryApi.post<ProcurementBatch>(
       `/procurement-batches/${batchId}`,

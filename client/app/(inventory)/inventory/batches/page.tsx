@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,16 +14,11 @@ import {
 } from "@/components/ui/table";
 import { inventoryAPI } from "@/lib/inventoryApi";
 import { ProcurementBatch } from "@/lib/inventoryTypes";
-import { ReceiveBatchModal } from "@/components/inventory/ReceiveBatchModal";
 import { PackageCheck } from "lucide-react";
 
 export default function BatchesPage() {
   const [batches, setBatches] = useState<ProcurementBatch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBatch, setSelectedBatch] = useState<ProcurementBatch | null>(
-    null
-  );
-  const [modalOpen, setModalOpen] = useState(false);
 
   const fetchBatches = async () => {
     try {
@@ -48,16 +44,6 @@ export default function BatchesPage() {
     if (status === "received") return "default";
     if (status === "partially_received") return "secondary";
     return "outline";
-  };
-
-  const handleReceiveClick = (batch: ProcurementBatch) => {
-    setSelectedBatch(batch);
-    setModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setModalOpen(false);
-    setSelectedBatch(null);
   };
 
   if (loading) {
@@ -128,13 +114,11 @@ export default function BatchesPage() {
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        onClick={() => handleReceiveClick(batch)}
-                        className="gap-1"
-                      >
-                        <PackageCheck className="h-4 w-4" />
-                        Receive
+                      <Button size="sm" asChild className="gap-1">
+                        <Link href={`/inventory/batches/${batch._id}/receive`}>
+                          <PackageCheck className="h-4 w-4" />
+                          Receive
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -144,13 +128,6 @@ export default function BatchesPage() {
           </Table>
         </div>
       </div>
-
-      <ReceiveBatchModal
-        batch={selectedBatch}
-        open={modalOpen}
-        onClose={handleModalClose}
-        onSuccess={fetchBatches}
-      />
     </div>
   );
 }

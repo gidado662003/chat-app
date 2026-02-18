@@ -42,3 +42,50 @@ export type Asset = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export type InventoryMovement = {
+  _id: string;
+  product: Product;
+  type: "PROCUREMENT" | "SALE" | "TRANSFER" | "ADJUSTMENT" | "RETURN";
+  quantity: number;
+  previousQuantity: number;
+  newQuantity: number;
+  reference?: { _id: string } | null;
+  referenceModel?: string;
+  location?: string;
+  performedBy?: {
+    name?: string;
+    email?: string;
+  };
+  notes?: string;
+  createdAt: string;
+};
+
+export type AssetHistory = {
+  _id: string;
+  asset: Asset | string;
+  action:
+    | "CREATED"
+    | "ASSIGNED"
+    | "RETURNED"
+    | "MAINTENANCE_STARTED"
+    | "MAINTENANCE_COMPLETED"
+    | "RETIRED"
+    | "LOCATION_CHANGED";
+  previousStatus?: string;
+  newStatus?: string;
+  previousLocation?: string;
+  newLocation?: string;
+  assignedTo?: {
+    name?: string;
+    email?: string;
+    department?: string;
+  };
+  performedBy?: {
+    name?: string;
+    email?: string;
+  };
+  notes?: string;
+  createdAt: string;
+};
+
