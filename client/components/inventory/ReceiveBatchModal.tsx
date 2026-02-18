@@ -78,7 +78,9 @@ export function ReceiveBatchModal({
       const filled = serialNumbers.filter((s) => s.trim()).length;
       if (filled !== quantity) {
         toast.error(
-          "Please fill all " + quantity + " serial number field(s) for this asset"
+          "Please fill all " +
+            quantity +
+            " serial number field(s) for this asset",
         );
         return;
       }
@@ -95,7 +97,8 @@ export function ReceiveBatchModal({
       onClose();
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      const msg = axiosErr?.response?.data?.message ?? "Failed to receive batch";
+      const msg =
+        axiosErr?.response?.data?.message ?? "Failed to receive batch";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -106,7 +109,7 @@ export function ReceiveBatchModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-7xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Receive Batch</DialogTitle>
           <DialogDescription>

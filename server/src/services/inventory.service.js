@@ -54,7 +54,7 @@ async function createProductsFromRequest(request) {
 }
 
 async function getBatchProducts() {
-  const batches = await ProcurementBatch.find()
+  const batches = await ProcurementBatch.find({ status: "awaiting_receipt" })
     .populate("product")
     .populate("requisition");
   return batches;
