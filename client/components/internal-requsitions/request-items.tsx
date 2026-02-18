@@ -67,7 +67,7 @@ function RequisitionItems({
       unitPrice,
       id: Date.now().toString(),
       total,
-      type: newItem.type || undefined, // Only add type if it exists
+      type: newItem.type ? newItem.type : null,
     };
 
     setFormData((prev) => ({ ...prev, items: [...prev.items, item] }));
