@@ -30,7 +30,6 @@ function page() {
     items: [],
     attachement: [],
   });
-  console.log(formData);
 
   const handleNextStep = () => {
     setCurrentStep(currentStep + 1);

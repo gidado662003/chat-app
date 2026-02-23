@@ -312,7 +312,9 @@ export default function RequestDetailsPage() {
                   <Label className="text-[10px] uppercase font-black text-muted-foreground">
                     Submission Date
                   </Label>
-                  <p className="font-medium">{formatDate(request.createdAt)}</p>
+                  <p className="font-medium">
+                    {formatDate(request.requestedOn)}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-[10px] uppercase font-black text-muted-foreground">

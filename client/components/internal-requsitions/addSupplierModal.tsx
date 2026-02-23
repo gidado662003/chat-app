@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { inventoryAPI } from "@/lib/inventoryApi";
 
-export function SupplierDialog() {
+export function SupplierDialog({ setReload }: { setReload: () => void }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -49,6 +49,7 @@ export function SupplierDialog() {
 
       resetForm();
       setOpen(false); // close dialog on success
+      setReload(); // trigger reload in parent component
     } catch (error) {
       console.error("Error adding supplier:", error);
     } finally {

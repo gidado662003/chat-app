@@ -63,6 +63,7 @@ const statusColors = {
 
 export default function Dashboard({ data }: { data: DashboardData }) {
   const { overview, insights } = data;
+  console.log("Dashboard data:", data);
 
   const monthlyChartData = data.monthlyTrends.map((m) => ({
     name: formatMonth(m._id.year, m._id.month),
@@ -401,7 +402,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
               ),
               date: (
                 <span className="text-muted-foreground">
-                  {new Date(req.createdAt).toLocaleDateString("en-GB", {
+                  {new Date(req.requestedOn).toLocaleDateString("en-GB", {
                     day: "numeric",
                     month: "short",
                     year: "numeric",

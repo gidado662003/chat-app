@@ -175,5 +175,6 @@ requisitionSchema.pre("save", async function () {
 
 requisitionSchema.set("toJSON", { virtuals: true });
 requisitionSchema.set("toObject", { virtuals: true });
+requisitionSchema.index({ requestedOn: -1, _id: -1 });
 
 module.exports = mongoose.model("InternalRequisition", requisitionSchema);

@@ -122,7 +122,7 @@ export type DashboardData = {
     totalAmount: number;
     requisitionNumber: string;
     status: string;
-    createdAt: string;
+    requestedOn: string;
     amountRemaining?: number;
     totalAmmontPaid?: number;
     id?: string;

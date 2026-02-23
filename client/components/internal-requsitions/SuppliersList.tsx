@@ -33,7 +33,7 @@ function SuppliersList({ value, onSelect }: SuppliersListProps) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [reloadFlag, setReloadFlag] = useState(false); // flag to trigger reload after adding supplier
   /* ---------------- FETCH WITH DEBOUNCE ---------------- */
 
   useEffect(() => {
@@ -50,7 +50,12 @@ function SuppliersList({ value, onSelect }: SuppliersListProps) {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, reloadFlag]); // also refetch when reloadFlag changes
+
+  // Callback to trigger reload after adding supplier
+  const handleSupplierAdded = () => {
+    setReloadFlag((prev) => !prev); // toggle flag to trigger useEffect
+  };
 
   /* ---------------- RENDER ---------------- */
 
@@ -76,7 +81,7 @@ function SuppliersList({ value, onSelect }: SuppliersListProps) {
         <ComboboxEmpty>
           <div className="flex flex-col gap-2 p-2">
             <p className="text-sm text-muted-foreground">No supplier found</p>
-            <SupplierDialog />
+            <SupplierDialog setReload={handleSupplierAdded} />
           </div>
         </ComboboxEmpty>
 
@@ -86,7 +91,7 @@ function SuppliersList({ value, onSelect }: SuppliersListProps) {
               <div className="flex flex-col">
                 <span className="font-medium">{supplier.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {supplier.contactInfo.email}
+                  {supplier?.contactInfo?.email}
                 </span>
               </div>
             </ComboboxItem>

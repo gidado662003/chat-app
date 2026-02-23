@@ -61,9 +61,11 @@ async function getAllData(req, res) {
       startDate,
       endDate,
     } = req.query;
-    const limit = 10;
 
+    const limit = 10;
     const filters = [];
+
+    // 🔐 Role / department restriction
     if (
       req.user.role !== "Admin Manager" &&
       req.user.department.name !== "Finance"
@@ -71,20 +73,19 @@ async function getAllData(req, res) {
       filters.push({ department: req.user.department.name });
     }
 
-    // Cursor pagination
     if (cursorTimestamp && cursorId) {
       filters.push({
         $or: [
-          { createdAt: { $lt: new Date(cursorTimestamp) } },
+          { requestedOn: { $lt: new Date(cursorTimestamp) } },
           {
-            createdAt: new Date(cursorTimestamp),
+            requestedOn: new Date(cursorTimestamp),
             _id: { $lt: cursorId },
           },
         ],
       });
     }
 
-    // Search filter
+    // 🔍 Search filter
     if (search) {
       filters.push({
         $or: [
@@ -97,33 +98,45 @@ async function getAllData(req, res) {
       });
     }
 
+    // 📊 Status & bank filters
     if (status) filters.push({ status });
     if (bank) filters.push({ bank });
 
+    // 📅 Date range filter (requestedOn)
     if (startDate && endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-      filters.push({ createdAt: { $gte: new Date(startDate), $lte: end } });
+
+      filters.push({
+        requestedOn: {
+          $gte: new Date(startDate),
+          $lte: end,
+        },
+      });
     }
 
     const query = filters.length ? { $and: filters } : {};
-    // Fetch limit + 1 to detect hasMore
+
+    // 📥 Fetch data (limit + 1 to check hasMore)
     const results = await InternalRequisition.find(query)
-      .sort({ createdAt: -1, _id: -1 })
+      .sort({ requestedOn: -1, _id: -1 })
       .limit(limit + 1)
       .lean();
 
     const hasMore = results.length > limit;
     const data = hasMore ? results.slice(0, limit) : results;
 
+    // ⏭️ Next cursor
     let nextCursor = null;
     if (hasMore) {
       const lastItem = data[data.length - 1];
       nextCursor = {
-        timestamp: lastItem.createdAt,
+        timestamp: lastItem.requestedOn,
         id: lastItem._id,
       };
     }
+
+    // 📈 Status counts
     const counts = await InternalRequisition.aggregate([
       { $match: query },
       {
@@ -133,6 +146,7 @@ async function getAllData(req, res) {
         },
       },
     ]);
+
     const figures = {
       countTotal: 0,
       approvedTotal: 0,
@@ -140,6 +154,7 @@ async function getAllData(req, res) {
       rejectedTotal: 0,
       outstandingTotal: 0,
     };
+
     counts.forEach((item) => {
       figures.countTotal += item.count;
       if (item._id === "approved") figures.approvedTotal = item.count;
@@ -148,24 +163,18 @@ async function getAllData(req, res) {
       if (item._id === "outstanding") figures.outstandingTotal = item.count;
     });
 
+    // ✅ Response
     res.status(200).json({
       data,
       nextCursor,
       hasMore,
-      counts: {
-        countTotal: figures.countTotal,
-        approvedTotal: figures.approvedTotal,
-        pendingTotal: figures.pendingTotal,
-        rejectedTotal: figures.rejectedTotal,
-        outstandingTotal: figures.outstandingTotal,
-      },
+      counts: figures,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error getting data" });
   }
 }
-
 async function getDataById(req, res) {
   try {
     const { id } = req.params;
@@ -290,7 +299,11 @@ async function updateRequest(req, res) {
 
     const response = await request.save();
 
-    if (data.status === "approved" || data.status === "completed") {
+    if (
+      data.status === "approved" ||
+      (data.status === "completed" &&
+        response.items.some((item) => item.type === "equipment-procured"))
+    ) {
       await createProductsFromRequest(request);
     }
 

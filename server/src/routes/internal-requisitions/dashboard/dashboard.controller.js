@@ -6,7 +6,7 @@ exports.getPriorityDistribution = async (req, res) => {
     const { startDate, endDate } = req.query;
     const dateFilter = {};
     if (startDate && endDate) {
-      dateFilter.createdAt = {
+      dateFilter.requestedOn = {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       };
@@ -60,7 +60,7 @@ exports.getAmountRanges = async (req, res) => {
     const { startDate, endDate } = req.query;
     const dateFilter = {};
     if (startDate && endDate) {
-      dateFilter.createdAt = {
+      dateFilter.requestedOn = {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       };
@@ -71,7 +71,16 @@ exports.getAmountRanges = async (req, res) => {
       {
         $bucket: {
           groupBy: "$totalAmount",
-          boundaries: [0, 10000, 50000, 100000, 250000, 500000, 1000000, Infinity],
+          boundaries: [
+            0,
+            10000,
+            50000,
+            100000,
+            250000,
+            500000,
+            1000000,
+            Infinity,
+          ],
           default: "Other",
           output: {
             count: { $sum: 1 },
@@ -93,9 +102,18 @@ exports.getAmountRanges = async (req, res) => {
                 { case: { $eq: ["$_id", 0] }, then: "₦0 - ₦10,000" },
                 { case: { $eq: ["$_id", 10000] }, then: "₦10,001 - ₦50,000" },
                 { case: { $eq: ["$_id", 50000] }, then: "₦50,001 - ₦100,000" },
-                { case: { $eq: ["$_id", 100000] }, then: "₦100,001 - ₦250,000" },
-                { case: { $eq: ["$_id", 250000] }, then: "₦250,001 - ₦500,000" },
-                { case: { $eq: ["$_id", 500000] }, then: "₦500,001 - ₦1,000,000" },
+                {
+                  case: { $eq: ["$_id", 100000] },
+                  then: "₦100,001 - ₦250,000",
+                },
+                {
+                  case: { $eq: ["$_id", 250000] },
+                  then: "₦250,001 - ₦500,000",
+                },
+                {
+                  case: { $eq: ["$_id", 500000] },
+                  then: "₦500,001 - ₦1,000,000",
+                },
                 { case: { $eq: ["$_id", 1000000] }, then: "₦1,000,000+" },
               ],
               default: "Other",
@@ -130,7 +148,7 @@ exports.getApprovalTrends = async (req, res) => {
     const { startDate, endDate } = req.query;
     const dateFilter = {};
     if (startDate && endDate) {
-      dateFilter.createdAt = {
+      dateFilter.requestedOn = {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       };
@@ -165,7 +183,7 @@ exports.getDepartmentTrends = async (req, res) => {
     const { startDate, endDate } = req.query;
     const dateFilter = {};
     if (startDate && endDate) {
-      dateFilter.createdAt = {
+      dateFilter.requestedOn = {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       };
@@ -177,8 +195,8 @@ exports.getDepartmentTrends = async (req, res) => {
         $group: {
           _id: {
             department: "$department",
-            month: { $month: "$createdAt" },
-            year: { $year: "$createdAt" },
+            month: { $month: "$requestedOn" },
+            year: { $year: "$requestedOn" },
           },
           count: { $sum: 1 },
           totalAmount: { $sum: { $ifNull: ["$totalAmount", 0] } },
@@ -225,7 +243,7 @@ exports.getProcessingTimeDistribution = async (req, res) => {
     const { startDate, endDate } = req.query;
     const dateFilter = {};
     if (startDate && endDate) {
-      dateFilter.createdAt = {
+      dateFilter.requestedOn = {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       };
@@ -243,7 +261,7 @@ exports.getProcessingTimeDistribution = async (req, res) => {
         $project: {
           processingDays: {
             $divide: [
-              { $subtract: ["$approvedOn", "$createdAt"] },
+              { $subtract: ["$approvedOn", "$requestedOn"] },
               1000 * 60 * 60 * 24,
             ],
           },
@@ -289,7 +307,9 @@ exports.getProcessingTimeDistribution = async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error("Error fetching processing time distribution:", error);
-    res.status(500).json({ error: "Failed to fetch processing time distribution" });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch processing time distribution" });
   }
 };
 
@@ -299,7 +319,7 @@ exports.getHourlyPatterns = async (req, res) => {
     const { startDate, endDate } = req.query;
     const dateFilter = {};
     if (startDate && endDate) {
-      dateFilter.createdAt = {
+      dateFilter.requestedOn = {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       };
@@ -309,7 +329,7 @@ exports.getHourlyPatterns = async (req, res) => {
       { $match: dateFilter },
       {
         $group: {
-          _id: { $hour: "$createdAt" },
+          _id: { $hour: "$requestedOn" },
           count: { $sum: 1 },
           totalAmount: { $sum: { $ifNull: ["$totalAmount", 0] } },
         },
@@ -320,10 +340,7 @@ exports.getHourlyPatterns = async (req, res) => {
           count: 1,
           totalAmount: 1,
           hourLabel: {
-            $concat: [
-              { $toString: "$_id" },
-              ":00",
-            ],
+            $concat: [{ $toString: "$_id" }, ":00"],
           },
           _id: 0,
         },
@@ -345,7 +362,7 @@ exports.getDashboardMetrics = async (req, res) => {
 
     const dateFilter = {};
     if (startDate && endDate) {
-      dateFilter.createdAt = {
+      dateFilter.requestedOn = {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       };
@@ -424,6 +441,19 @@ exports.getDashboardMetrics = async (req, res) => {
             },
           },
         },
+        {
+          $project: {
+            _id: "$_id",
+            count: 1,
+            totalAmount: 1,
+            approved: 1,
+            pending: 1,
+            rejected: 1,
+            pendingAmount: 1,
+            approvedAmount: 1,
+            rejectedAmount: 1,
+          },
+        },
         { $sort: { count: -1 } },
       ]),
       InternalRequisition.aggregate([
@@ -471,21 +501,35 @@ exports.getDashboardMetrics = async (req, res) => {
             },
           },
         },
+        {
+          $project: {
+            _id: "$_id",
+            count: 1,
+            totalAmount: 1,
+            approved: 1,
+            pending: 1,
+            rejected: 1,
+            pendingAmount: 1,
+            approvedAmount: 1,
+            rejectedAmount: 1,
+          },
+        },
         { $sort: { count: -1 } },
       ]),
+      // Sort recent requisitions by requestedOn descending
       InternalRequisition.find(dateFilter)
-        .sort({ createdAt: -1 })
+        .sort({ requestedOn: -1 })
         .limit(5)
         .select(
-          "requisitionNumber title department status totalAmount createdAt"
+          "requisitionNumber title department status totalAmount requestedOn amountRemaining totalAmmontPaid",
         ),
       InternalRequisition.aggregate([
         { $match: dateFilter },
         {
           $group: {
             _id: {
-              year: { $year: "$createdAt" },
-              month: { $month: "$createdAt" },
+              year: { $year: "$requestedOn" },
+              month: { $month: "$requestedOn" },
             },
             count: { $sum: 1 },
             totalAmount: { $sum: { $ifNull: ["$totalAmount", 0] } },
@@ -500,9 +544,19 @@ exports.getDashboardMetrics = async (req, res) => {
             },
           },
         },
+        {
+          $project: {
+            _id: 1,
+            count: 1,
+            totalAmount: 1,
+            approved: 1,
+            pending: 1,
+            rejected: 1,
+          },
+        },
         { $sort: { "_id.year": 1, "_id.month": 1 } },
       ]),
-      // For average processing days, only consider approved items with approvedOn set
+      // Processing days: from requestedOn to approvedOn
       InternalRequisition.aggregate([
         {
           $match: {
@@ -515,7 +569,7 @@ exports.getDashboardMetrics = async (req, res) => {
           $project: {
             diffDays: {
               $divide: [
-                { $subtract: ["$approvedOn", "$createdAt"] },
+                { $subtract: ["$approvedOn", "$requestedOn"] },
                 1000 * 60 * 60 * 24,
               ],
             },
@@ -537,7 +591,6 @@ exports.getDashboardMetrics = async (req, res) => {
 
     const totalAmount = totalAmountAgg[0]?.total || 0;
 
-    // Compute insights
     const approvalRate = totalCount
       ? Number(((approvedCount / totalCount) * 100).toFixed(1))
       : 0;
@@ -545,14 +598,13 @@ exports.getDashboardMetrics = async (req, res) => {
       ? Number(approvalsForDuration[0].avgDays.toFixed(1))
       : 0;
 
-    // Month-over-month growth based on total count per month
     let monthOverMonthGrowth = 0;
     if (monthlyTrends.length >= 2) {
       const last = monthlyTrends[monthlyTrends.length - 1].count || 0;
       const prev = monthlyTrends[monthlyTrends.length - 2].count || 0;
       if (prev > 0) {
         monthOverMonthGrowth = Number(
-          (((last - prev) / prev) * 100).toFixed(1)
+          (((last - prev) / prev) * 100).toFixed(1),
         );
       } else if (last > 0) {
         monthOverMonthGrowth = 100;

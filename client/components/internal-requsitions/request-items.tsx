@@ -328,7 +328,7 @@ function RequisitionItems({
                       {/* ✅ Supplier column in existing item rows, also wired up */}
                       <TableCell>
                         <SuppliersList
-                          value={(item as any).supplier ?? null}
+                          value={(item as any).supplier}
                           onSelect={(supplier) =>
                             updateItem(item.id, { supplier })
                           }
