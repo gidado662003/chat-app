@@ -13,6 +13,7 @@ async function createProductsFromRequest(request, session) {
     let product = await Product.findOne({
       name: item.description.trim().toLowerCase(),
     });
+    console.log("test");
 
     if (!product) {
       product = await Product.create({
