@@ -261,18 +261,23 @@ async function createRequest(req, res) {
 async function updateRequest(req, res) {
   const isDev = process.env.NODE_ENV === "development";
 
+  const { id } = req.params;
+  const data = req.body;
+
+  if (!isDev && req.user.department.name !== "Finance") {
+    return res
+      .status(403)
+      .json({ message: "You are not authorized to update this request" });
+  }
+  const session = await mongoose.startSession();
   try {
-    const { id } = req.params;
-    const data = req.body;
-    const request = await InternalRequisition.findById(id);
-
-    if (!isDev && req.user.department.name !== "Finance") {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to update this request" });
+    session.startTransaction();
+    const request = await InternalRequisition.findById(id).session(session);
+    if (!request) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: "Not found" });
     }
-
-    if (!request) return res.status(404).json({ message: "Not found" });
     request.status = data.status;
 
     if (data.status === "rejected") {
@@ -297,15 +302,17 @@ async function updateRequest(req, res) {
       }
     }
 
-    const response = await request.save();
+    const response = await request.save({ session });
 
+    // pass data for product creation only when status is approved or when it's completed with equipment-procured items (to handle case where finance approves payment after procurement has marked as completed)
     if (
       data.status === "approved" ||
       (data.status === "completed" &&
-        response.items.some((item) => item.type === "equipment-procured"))
+        response.category === "equipment-procured")
     ) {
-      await createProductsFromRequest(request);
+      await createProductsFromRequest(request, session);
     }
+    await session.commitTransaction();
 
     const totalPaid = request.paymentHistory.reduce(
       (sum, payment) => sum + (payment.amount || 0),
@@ -403,8 +410,11 @@ async function updateRequest(req, res) {
 
     res.status(200).json(response);
   } catch (error) {
+    await session.abortTransaction();
     console.error(error);
     res.status(500).json({ message: "Error updating request" });
+  } finally {
+    session.endSession();
   }
 }
 

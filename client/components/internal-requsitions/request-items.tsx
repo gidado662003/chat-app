@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, PlusCircle } from "lucide-react";
 import { CreateRequisitionPayload } from "@/lib/internalRequestTypes";
 import {
   Select,
@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import SuppliersList from "./SuppliersList";
+import { toast } from "sonner";
 
 // Extend Supplier type locally — ideally share from a types file
 type Supplier = {
@@ -68,13 +69,15 @@ function RequisitionItems({
     type: "",
     supplier: null as Supplier | null,
   });
-  console.log(newItem);
 
   const newItemTotal =
     (parseFloat(newItem.quantity) || 0) * (parseFloat(newItem.unitPrice) || 0);
 
   const addItem = () => {
-    if (!newItem.description.trim()) return;
+    if (!newItem.description.trim()) {
+      toast.error("Description is required");
+      return;
+    }
 
     const quantity = parseFloat(newItem.quantity) || 0;
     const unitPrice = parseFloat(newItem.unitPrice) || 0;
@@ -165,8 +168,8 @@ function RequisitionItems({
           <Table>
             <TableHeader>
               {/* ── "New item" input row ── */}
-              <TableRow className="bg-gray-100 border border-slate-200/80 shadow-sm">
-                <TableCell className="font-semibold text-slate-800">
+              <TableRow className="bg-gray-100 dark:bg-slate-950 border border-slate-200/80 shadow-sm">
+                <TableCell className="font-semibold text-slate-800 dark:text-slate-100">
                   New
                 </TableCell>
                 <TableCell className="border-l border-slate-200/80">
@@ -195,9 +198,11 @@ function RequisitionItems({
                   />
                 </TableCell>
                 <TableCell className="border-l border-slate-200/80">
+                  <span className="">₦</span>
                   <Input
                     type="number"
                     step="0.01"
+                    className="p-2"
                     placeholder="0.00"
                     value={newItem.unitPrice}
                     onChange={(e) =>
@@ -243,12 +248,22 @@ function RequisitionItems({
                     </TableCell>
                   </>
                 )}
-                <TableCell className="font-semibold text-slate-800 border-l border-slate-200/80">
+                <TableCell className="font-semibold text-slate-800 dark:text-slate-100 border-l border-slate-200/80">
                   {newItem.quantity && newItem.unitPrice ? (
                     `₦ ${newItemTotal.toLocaleString()}`
                   ) : (
                     <span className="text-muted-foreground">-</span>
                   )}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    name="ADD ITEM"
+                    onClick={(e) => {
+                      addItem();
+                    }}
+                  >
+                    <PlusCircle />
+                  </Button>
                 </TableCell>
                 <TableCell />
               </TableRow>

@@ -42,7 +42,7 @@ function page() {
     setLoading(true);
 
     try {
-      await internlRequestAPI.createRequest(formData);
+      const response = await internlRequestAPI.createRequest(formData);
 
       toast.success("Request created successfully");
       setCurrentStep(1);
@@ -62,18 +62,14 @@ function page() {
       });
     } catch (error) {
       console.error("Error creating request:", error);
-      toast.error("Failed to create request");
+      toast.error("Failed to create request", error);
     } finally {
       setLoading(false);
     }
   };
-  console.log(formData);
+
   return (
     <div>
-      {/* <header className='flex flex-col gap-2'>
-                <h1 className='text-2xl font-bold'>Create Request</h1>
-                <p className='text-sm text-muted-foreground'>Fill in the details below to create a new payment request</p>
-            </header> */}
       <main className="mt-4">
         <Card>
           <CardContent className="flex p-4 justify-between items-center">

@@ -77,35 +77,48 @@ const getMeetingById = async (req, res) => {
 };
 
 const createMeeting = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
+    session.startTransaction();
+
     const { meetingData, actionItemsData } = req.body;
 
     // 1️⃣ Create meeting inside transaction
-    const meeting = await Meeting.create(meetingData);
+    const meeting = await Meeting.create([meetingData], { session });
 
     let createdActionItems = [];
 
-    // 2️⃣ Create action items
+    // 2️⃣ Create action items if any
     if (actionItemsData && actionItemsData.length > 0) {
       const formattedItems = actionItemsData.map((item) => ({
         ...item,
-        meetingId: meeting._id,
+        meetingId: meeting[0]._id,
       }));
 
-      createdActionItems = await ActionItem.insertMany(formattedItems);
+      createdActionItems = await ActionItem.insertMany(formattedItems, {
+        session,
+      });
 
       // 3️⃣ Update meeting with action item IDs
-      meeting.actionItems = createdActionItems.map((item) => item._id);
-
-      await meeting.save();
+      meeting[0].actionItems = createdActionItems.map((item) => item._id);
+      await meeting[0].save({ session });
     }
+
+    // 4️⃣ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(201).json({
       message: "Meeting created successfully",
-      meeting: meeting,
+      meeting: meeting[0],
       actionItems: createdActionItems,
     });
   } catch (error) {
+    // If anything fails, abort transaction
+    await session.abortTransaction();
+    session.endSession();
+
     res.status(500).json({ message: error.message });
   }
 };

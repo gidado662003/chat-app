@@ -78,6 +78,7 @@ export const internlRequestAPI = {
       return res.data;
     } catch (error) {
       console.error("Fetch all data failed", error);
+      throw error;
     }
   },
   dataById: async (id: string) => {
@@ -86,6 +87,7 @@ export const internlRequestAPI = {
       return res.data;
     } catch (error) {
       console.error("Fetch all data failed", error);
+      throw error;
     }
   },
   createRequest: async (request: any) => {
@@ -111,6 +113,7 @@ export const internlRequestAPI = {
       return res.data;
     } catch (error) {
       console.error("Create request failed", error);
+      throw error;
     }
   },
   updateRequest: async (id: string, request: any) => {
@@ -122,6 +125,7 @@ export const internlRequestAPI = {
       return res.data;
     } catch (error) {
       console.error("Create request failed", error);
+      throw error;
     }
   },
   getDashboardData: async () => {
@@ -130,6 +134,7 @@ export const internlRequestAPI = {
       return res.data;
     } catch (error) {
       console.error("Get dashboard data failed", error);
+      throw error;
     }
   },
 };
