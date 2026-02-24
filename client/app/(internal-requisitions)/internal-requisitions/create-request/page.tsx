@@ -62,7 +62,7 @@ function page() {
       });
     } catch (error) {
       console.error("Error creating request:", error);
-      toast.error("Failed to create request", error);
+      toast.error("Failed to create request");
     } finally {
       setLoading(false);
     }
