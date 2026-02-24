@@ -4,11 +4,12 @@ const Asset = require("../models/asset.schema");
 const ProcurementBatch = require("../models/productBatch.schema");
 const Supplier = require("../models/supplier.schema");
 const InventoryMovement = require("../models/inventoryMovement.schema");
-const AssetHistory = require("../models/assetHistory.schema");
 
-async function createProductsFromRequest(request) {
-  console.log("Creating products from request:", request);
+async function createProductsFromRequest(request, session) {
   for (const item of request.items) {
+    if (item.type !== "asset" && item.type !== "inventory") {
+      throw new Error(`Invalid item type: ${item.type}`);
+    }
     let product = await Product.findOne({
       name: item.description.trim().toLowerCase(),
     });
