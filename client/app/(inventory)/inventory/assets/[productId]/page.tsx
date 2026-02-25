@@ -97,10 +97,14 @@ export default function AssetProductDetailPage() {
       </Badge>
     ),
     location: <span className="text-sm">{a.location || "Main Warehouse"}</span>,
-    assignedTo: <span className="text-sm">{a.assignedTo?.name || "—"}</span>,
-    assignedEmail: (
+    assignedTo: (
+      <span className="text-sm">
+        {a.movements ? a.movements[0].toHolderSnapshot?.name : "—"}
+      </span>
+    ),
+    type: (
       <span className="text-sm text-muted-foreground">
-        {a.assignedTo?.email || "—"}
+        {a.holderType || "—"}
       </span>
     ),
     createdAt: (
@@ -250,7 +254,7 @@ export default function AssetProductDetailPage() {
               { key: "status", label: "Status" },
               { key: "location", label: "Location" },
               { key: "assignedTo", label: "Assigned To" },
-              { key: "assignedEmail", label: "Email" },
+              { key: "type", label: "Type" },
               { key: "createdAt", label: "Created" },
               { key: "updatedAt", label: "Updated" },
               { key: "history", label: "" },

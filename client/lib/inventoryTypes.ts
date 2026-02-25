@@ -39,19 +39,36 @@ export type ProcurementBatch = {
 
 export type Asset = {
   _id: string;
-  product: Product;
-  status: "IN_STOCK" | "ASSIGNED" | "UNDER_MAINTENANCE" | "RETIRED";
-  assignedTo?: {
-    name?: string;
-    email?: string;
-    department?: string;
+  product: {
+    _id: string;
+    name: string;
+    unit: string;
+    status?: string;
+    trackIndividually?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    category?: string;
   };
-  location?: string;
+  batch?: string;
   serialNumber?: string;
+  category?: string;
+  supplier?: string;
+  status: "IN_STOCK" | "ASSIGNED" | "UNDER_MAINTENANCE" | "RETIRED";
+  condition?: string;
+  purchaseDate?: string;
+  ownership?: string;
+  movements?: Array<{
+    toHolderSnapshot?: any | null;
+    _id: string;
+    type: string;
+    performedAt: string;
+  }>;
+  location?: string;
   createdAt?: string;
   updatedAt?: string;
+  __v?: number;
+  holderType?: string;
 };
-
 // Grouped summary data returned by /asset/summary
 export type AssetGroup = {
   productId: string;

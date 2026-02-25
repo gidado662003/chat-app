@@ -6,58 +6,49 @@ const Supplier = require("../models/supplier.schema");
 const InventoryMovement = require("../models/inventoryMovement.schema");
 
 async function createProductsFromRequest(request, session) {
+  if (request.productsCreated) return;
+
   for (const item of request.items) {
-    if (item.type !== "asset" && item.type !== "inventory") {
+    if (!["asset", "inventory"].includes(item.type)) {
       throw new Error(`Invalid item type: ${item.type}`);
     }
-    let product = await Product.findOne({
-      name: item.description.trim().toLowerCase(),
+
+    const productName = item.description.trim().toLowerCase();
+
+    let product = await Product.findOne({ name: productName }, null, {
+      session,
     });
-    console.log("test");
 
     if (!product) {
-      product = await Product.create({
-        name: item.description.trim().toLowerCase(),
-        unit: item.unit || "pcs",
-        trackIndividually: item.type === "asset",
-      });
+      [product] = await Product.create(
+        [
+          {
+            name: productName,
+            unit: item.unit || "pcs",
+            trackIndividually: item.type === "asset",
+          },
+        ],
+        { session },
+      );
     }
 
-    const batch = await ProcurementBatch.create({
-      product: product._id,
-      requisition: request._id,
-      expectedQuantity: item.quantity,
-      status: "awaiting_receipt",
-      location: request.location,
-      supplier: item.supplier,
-    });
-    await batch.save();
-    console.log("Created batch:", batch);
-
-    // 2️⃣ If Asset
-    // if (item.type === "asset") {
-    //   for (let i = 0; i < item.quantity; i++) {
-    //     await Asset.create({
-    //       product: product._id,
-    //       status: "IN_STOCK",
-    //       location: request.location,
-    //       serialNumber: item.serialNumbers[i],
-    //     });
-    //   }
-    // }
-
-    // 3️⃣ If Inventory
-    // if (item.type === "inventory") {
-    //   await Inventory.findOneAndUpdate(
-    //     { product: product._id },
-    //     {
-    //       $inc: { quantity: item.quantity },
-    //       $set: { location: request.location },
-    //     },
-    //     { upsert: true },
-    //   );
-    // }
+    await ProcurementBatch.create(
+      [
+        {
+          product: product._id,
+          requisition: request._id,
+          expectedQuantity: item.quantity,
+          status: "awaiting_receipt",
+          location: request.location,
+          supplier: item.supplier,
+        },
+      ],
+      { session },
+    );
   }
+
+  request.productsCreated = true;
+  await request.save({ session });
 }
 
 // Get all batches that are awaiting receipt or partially received, with product and requisition details

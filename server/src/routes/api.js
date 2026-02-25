@@ -16,12 +16,14 @@ const InventoryMovements = require("./inventory-system/inventoryMovement/invento
 const Supplier = require("./supplier/supplier.route");
 const routes = express.Router();
 
-routes.use("/internalrequest/dashboard", dashboardMetrics);
-routes.use("/user", validateSanctumToken, Users);
 routes.use("/admin", Admin);
-routes.use("/chats", validateSanctumToken, Chats);
-routes.use("/messages", validateSanctumToken, Messages);
-routes.use("/internalrequest", validateSanctumToken, InternalRequests);
+
+routes.use(validateSanctumToken); // Apply token validation to all routes below
+routes.use("/internalrequest/dashboard", dashboardMetrics);
+routes.use("/user", Users);
+routes.use("/chats", Chats);
+routes.use("/messages", Messages);
+routes.use("/internalrequest", InternalRequests);
 routes.use("/inventory", Inventory);
 routes.use("/asset", Asset);
 routes.use("/meeting", meetingApp);

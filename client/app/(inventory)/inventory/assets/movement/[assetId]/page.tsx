@@ -290,7 +290,6 @@ export default function NewMovementPage() {
         return vendors.map((v) => ({
           id: v._id,
           name: v.name,
-          sub: v.contactInfo.email,
         }));
       case "WAREHOUSE":
         return [{ id: "wh1", name: "Main Warehouse" }];

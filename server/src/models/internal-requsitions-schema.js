@@ -110,6 +110,11 @@ const requisitionSchema = new mongoose.Schema(
       default: [],
     },
 
+    productsCreated: {
+      type: Boolean,
+      default: false,
+    },
+
     status: {
       type: String,
       enum: [

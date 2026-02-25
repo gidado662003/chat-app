@@ -119,7 +119,14 @@ async function getAssetsByProduct(productId, search) {
     ];
   }
 
-  return Asset.find(query).populate("product").sort({ createdAt: -1 });
+  return Asset.find(query)
+    .populate("product")
+    .populate({
+      path: "movements",
+      options: { sort: { performedAt: -1 }, limit: 1 },
+      select: "toHolderSnapshot fromHolderSnapshot performedAt type",
+    })
+    .sort({ createdAt: -1 });
 }
 
 async function getAssetMovementsData(assetId, userSearch, supplierSearch) {
