@@ -306,11 +306,12 @@ async function updateRequest(req, res) {
     const response = await request.save({ session });
 
     // pass data for product creation only when status is approved or when it's completed with equipment-procured items (to handle case where finance approves payment after procurement has marked as completed)
-    if (
-      data.status === "approved" ||
-      (data.status === "completed" &&
-        response.category === "equipment-procured")
-    ) {
+    const isApprovedOrCompleted =
+      data.status === "approved" || data.status === "completed";
+
+    const isEquipmentProcured = data.category === "equipment-procured";
+
+    if (isApprovedOrCompleted && isEquipmentProcured) {
       await createProductsFromRequest(request, session);
     }
     await session.commitTransaction();
