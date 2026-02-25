@@ -91,6 +91,7 @@ async function getAllData(req, res) {
       filters.push({
         $or: [
           { department: { $regex: search, $options: "i" } },
+          { category: { $regex: search, $options: "i" } },
           { location: { $regex: search, $options: "i" } },
           { "paymentHistory.bank": { $regex: search, $options: "i" } },
           { requisitionNumber: { $regex: search, $options: "i" } },

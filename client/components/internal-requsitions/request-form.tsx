@@ -18,7 +18,6 @@ import {
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { CreateRequisitionPayload } from "@/lib/internalRequestTypes";
-import { toast } from "sonner";
 
 function RequestForm({
   handleNextStep,
@@ -37,6 +36,7 @@ function RequestForm({
     { value: "Ajah", label: "Ajah" },
     { value: "Ibadan", label: "Ibadan" },
     { value: "Marina", label: "Marina" },
+    { value: "General", label: "General" },
   ];
   const categories = [
     { value: "expenses", label: "Expenses" },
