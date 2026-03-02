@@ -70,7 +70,9 @@ function RequestTable({
   const user = useAuthStore((state) => state.user);
   console.log("Current user in RequestTable:", user); // Debugging line to check user state
 
-  const canPrint = user?.role === "admin" || user?.department === "finance";
+  const canPrint =
+    user?.role === "admin" ||
+    user?.department?.toLocaleLowerCase() === "finance";
 
   // Status Badge Logic
   const getStatusVariant = (status: string) => {
