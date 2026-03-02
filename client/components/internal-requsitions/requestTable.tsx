@@ -21,6 +21,7 @@ import { Badge } from "../ui/badge";
 import { FileDown, X, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { generatePrintable } from "@/lib/pdfGenrator";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/lib/store";
 
 type RequestTableProps = {
   data?: InternalRequisition[];
@@ -65,6 +66,11 @@ function RequestTable({
     setSelectedRequests([]);
     setShowPDFDialog(false);
   };
+
+  const user = useAuthStore((state) => state.user);
+  console.log("Current user in RequestTable:", user); // Debugging line to check user state
+
+  const canPrint = user?.role === "admin" || user?.department === "finance";
 
   // Status Badge Logic
   const getStatusVariant = (status: string) => {
@@ -137,7 +143,7 @@ function RequestTable({
         <Table>
           <TableHeader className="">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[40px]"></TableHead>
+              {canPrint && <TableHead className="w-[40px]"></TableHead>}
               <TableHead className="w-[60px] text-xs font-bold uppercase text-slate-500">
                 S/N
               </TableHead>
@@ -180,14 +186,16 @@ function RequestTable({
                         : "hover:bg-slate-50/50 dark:hover:bg-slate-50/20",
                     )}
                   >
-                    <TableCell>
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => handleSelectRequest(data)}
-                        disabled={!canSelect}
-                        className="border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                      />
-                    </TableCell>
+                    {canPrint && (
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => handleSelectRequest(data)}
+                          disabled={!canSelect}
+                          className="border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="text-slate-500 font-medium">
                       {index + 1}
                     </TableCell>

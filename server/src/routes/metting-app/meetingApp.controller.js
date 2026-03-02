@@ -27,7 +27,7 @@ const getMeetings = async (req, res) => {
     const meetings = await Meeting.find(query)
       .select("title date department status createdAt _id")
       .sort({ createdAt: -1 })
-      .limit(8);
+      .limit(80);
 
     res.status(200).json({
       meetings,
@@ -43,7 +43,6 @@ const getMeetingById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // ---- Validation ----
     if (!id) {
       return res.status(400).json({
         message: "Meeting id is required",
@@ -56,10 +55,9 @@ const getMeetingById = async (req, res) => {
       });
     }
 
-    // ---- Fetch Meeting ----
     const meeting = await Meeting.findById(id)
-      .populate("attendees", "name email") // optional
-      .populate("actionItems") // optional
+      .populate("attendees", "name email")
+      .populate("actionItems")
       .lean();
 
     if (!meeting) {
@@ -84,12 +82,10 @@ const createMeeting = async (req, res) => {
 
     const { meetingData, actionItemsData } = req.body;
 
-    // 1️⃣ Create meeting inside transaction
     const meeting = await Meeting.create([meetingData], { session });
 
     let createdActionItems = [];
 
-    // 2️⃣ Create action items if any
     if (actionItemsData && actionItemsData.length > 0) {
       const formattedItems = actionItemsData.map((item) => ({
         ...item,
@@ -100,12 +96,9 @@ const createMeeting = async (req, res) => {
         session,
       });
 
-      // 3️⃣ Update meeting with action item IDs
       meeting[0].actionItems = createdActionItems.map((item) => item._id);
       await meeting[0].save({ session });
     }
-
-    // 4️⃣ Commit transaction
     await session.commitTransaction();
     session.endSession();
 
@@ -115,7 +108,6 @@ const createMeeting = async (req, res) => {
       actionItems: createdActionItems,
     });
   } catch (error) {
-    // If anything fails, abort transaction
     await session.abortTransaction();
     session.endSession();
 
