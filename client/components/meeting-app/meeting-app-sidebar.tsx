@@ -69,11 +69,6 @@ export default function InternalRequisitionSidebar() {
           label="Meetings"
           icon={<Users size={18} />}
         />
-        <NavItem
-          href="/meeting-app/testing"
-          label="Testing"
-          icon={<Users size={18} />}
-        />
         {/* <NavItem href="/meeting-app/departments" label="Departments" icon={<MessageSquareText size={18} />} /> */}
         {/* <NavItem href="/meeting-app/create-meeting" label="Create Meeting" icon={<Plus size={18} />} /> */}
         <NavItem
