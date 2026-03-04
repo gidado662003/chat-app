@@ -70,6 +70,24 @@ const apps = [
     featured: false,
   },
   {
+    name: "Documents App",
+    description: "Organize, upload, and access department .pptx files securely",
+    icon: FileText,
+    href: "/documents",
+    module: "document",
+    accent: "#F59E0B",
+    accentLight: "#FEF3C7",
+    accentDark: "#451a03",
+    tag: "Documents",
+    featured: true,
+    features: [
+      "Upload and manage .pptx files",
+      "Organize by department and category",
+      "Track file uploads with versioning",
+      "Access control based on user role",
+    ],
+  },
+  {
     name: "Admin Dashboard",
     description: "Manage users, roles, and chat configuration",
     icon: User,
@@ -142,7 +160,7 @@ function HomePage() {
           />
         </div>
 
-        <div className="mb-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+        <div className="mb-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-3">
           {featured.map((app, i) => {
             const Icon = app.icon;
             return (

@@ -53,7 +53,7 @@ export default function ReceiveBatchPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [quantity, setQuantity] = useState<number>(0);
-  const [assetMetas, setAssetMetas] = useState<AssetMeta[]>([]);
+  const [ assetMetas, setAssetMetas] = useState<AssetMeta[]>([]);
 
   const remainingToReceive = batch
     ? batch.expectedQuantity - batch.receivedQuantity

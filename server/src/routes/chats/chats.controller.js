@@ -4,10 +4,10 @@ const {
   getUserChats,
   addUserToGroup,
   pinMessage,
-  unpinMessage
+  unpinMessage,
 } = require("../../services/chat.service");
 const Chat = require("../../models/chat.schema");
-const Message = require("../../models/message.schema")
+const Message = require("../../models/message.schema");
 // Controller to handle API request
 async function createOrGetPrivateChat(req, res) {
   try {
@@ -59,7 +59,7 @@ async function getChatWithUser(req, res) {
 
     // Find the other participant (not the current user)
     const otherUser = chat.participants.find(
-      (user) => user._id.toString() !== userId
+      (user) => user._id.toString() !== userId,
     );
 
     if (!otherUser) {
@@ -115,7 +115,7 @@ async function getPrivateChatById(req, res) {
     }
 
     const otherUser = chat.participants.find(
-      (p) => p._id.toString() !== currentUserId
+      (p) => p._id.toString() !== currentUserId,
     );
 
     res.status(200).json({
@@ -128,11 +128,10 @@ async function getPrivateChatById(req, res) {
   }
 }
 
-
 async function getUserChatsController(req, res) {
   try {
     const userId = req.userId;
-    const { search } = req.query
+    const { search } = req.query;
     const chats = await getUserChats(userId, search);
 
     res.status(200).json({ chats });
@@ -150,25 +149,24 @@ async function addUserToGroupController(req, res) {
     // Validate required fields
     if (!userId || !chatId) {
       return res.status(400).json({
-        error: "userId and chatId are required"
+        error: "userId and chatId are required",
       });
     }
 
     // Validate userId and chatId are valid ObjectIds
-    // if (!mongoose.Types.ObjectId.isValid(userId) || 
+    // if (!mongoose.Types.ObjectId.isValid(userId) ||
     //     !mongoose.Types.ObjectId.isValid(chatId)) {
-    //   return res.status(400).json({ 
-    //     error: "Invalid userId or chatId format" 
+    //   return res.status(400).json({
+    //     error: "Invalid userId or chatId format"
     //   });
     // }
 
     const result = await addUserToGroup(userId, chatId, adderId);
     res.status(200).json(result);
-
   } catch (error) {
     console.error("Add user to group error:", error);
     res.status(400).json({
-      error: error.message || "Failed to add user to group"
+      error: error.message || "Failed to add user to group",
     });
   }
 }
@@ -181,7 +179,7 @@ async function uploadFileController(req, res) {
     res.status(200).json({
       url: fileUrl,
       filename: file.filename,
-      success: true
+      success: true,
     });
   } catch (error) {
     console.error("Upload file error:", error);
@@ -213,11 +211,15 @@ async function getGroupInfo(req, res) {
 
     // Check if current user is a member of the group
     const isMember = chat.groupMembers.some(
-      (member) => member._id.toString() === currentUserId
+      (member) => member._id.toString() === currentUserId,
     );
 
     if (!isMember) {
-      return res.status(403).json({ message: "Access denied. You are not a member of this group." });
+      return res
+        .status(403)
+        .json({
+          message: "Access denied. You are not a member of this group.",
+        });
     }
 
     const groupInfo = {
@@ -248,19 +250,21 @@ async function pinMessageController(req, res) {
     }
 
     let result;
-    if (action === 'unpin') {
+    if (action === "unpin") {
       result = await unpinMessage(chatId, messageId);
     } else {
       result = await pinMessage(chatId, messageId);
     }
 
     res.status(200).json({
-      message: action === 'unpin' ? 'Message unpinned' : 'Message pinned',
-      pinnedMessages: result
+      message: action === "unpin" ? "Message unpinned" : "Message pinned",
+      pinnedMessages: result,
     });
   } catch (error) {
-    console.error('Pin message error:', error);
-    res.status(500).json({ message: error.message || "Failed to pin/unpin message" });
+    console.error("Pin message error:", error);
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to pin/unpin message" });
   }
 }
 
@@ -273,5 +277,5 @@ module.exports = {
   addUserToGroupController,
   uploadFileController,
   getGroupInfo,
-  pinMessageController
+  pinMessageController,
 };

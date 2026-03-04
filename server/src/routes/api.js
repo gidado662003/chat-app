@@ -14,11 +14,13 @@ const Products = require("./inventory-system/products/products.routes");
 const BatchProduct = require("./inventory-system/batchProduct/batchProduct.routes");
 const InventoryMovements = require("./inventory-system/inventoryMovement/inventoryMovement.routes");
 const Supplier = require("./supplier/supplier.route");
+const InternalDocuments = require("./internal-documents/documents/internal-documents.route");
+const InternalDocumentCategory = require("./internal-documents/catergory/internal-documents-category.route");
 const routes = express.Router();
 
 routes.use("/admin", Admin);
 
-routes.use(validateSanctumToken); // Apply token validation to all routes below
+routes.use(validateSanctumToken);
 routes.use("/internalrequest/dashboard", dashboardMetrics);
 routes.use("/user", Users);
 routes.use("/chats", Chats);
@@ -31,4 +33,7 @@ routes.use("/products", Products);
 routes.use("/procurement-batches", BatchProduct);
 routes.use("/inventory-movements", InventoryMovements);
 routes.use("/suppliers", Supplier);
+routes.use("/document", InternalDocuments);
+routes.use("/document-categories", InternalDocumentCategory);
+
 module.exports = routes;

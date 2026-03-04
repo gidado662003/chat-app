@@ -40,6 +40,7 @@ export const internlRequestAPI = {
       return res;
     } catch (error) {
       console.error("Count List failed", error);
+      throw error;
     }
   },
 

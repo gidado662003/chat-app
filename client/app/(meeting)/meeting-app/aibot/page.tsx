@@ -29,7 +29,7 @@ function UseAiBot() {
   const [error, setError] = useState("");
   const [meetingData, setMeetingData] = useState<any>(null);
   const [actionItemsData, setActionItemsData] = useState<any[]>([]);
-  console.log(actionItemsData);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,7 +121,7 @@ function UseAiBot() {
         ...meetingData,
         actionItems: actionItemsData,
       };
-      console.log(meetingData, actionItemsData);
+   
       await mettingAppAPI.createMeeting({ meetingData, actionItemsData });
       toast("Meeting data submitted successfully!");
       setMeetingData(null);

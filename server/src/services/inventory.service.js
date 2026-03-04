@@ -74,7 +74,6 @@ async function getBatchProduct(
   id,
   quantity,
   assetMetas = [],
-  serialNumbers = [],
 ) {
   const batch = await ProcurementBatch.findById(id).populate("product");
   if (!batch) throw new Error("Batch product not found");
