@@ -338,6 +338,7 @@ export function DepartmentPage() {
                       onClick={(e) => {
                         e.preventDefault();
                         documentsApi.deleteCategory(cat._id);
+                        fetchCategories();
                       }}
                     >
                       <Trash className="h-4 w-4" />
