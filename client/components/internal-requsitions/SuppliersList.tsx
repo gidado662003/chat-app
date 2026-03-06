@@ -52,6 +52,13 @@ function SuppliersList({ value, onSelect }: SuppliersListProps) {
     return () => clearTimeout(timer);
   }, [search, reloadFlag]); // also refetch when reloadFlag changes
 
+  // Keep the input text in sync with the externally controlled value
+  useEffect(() => {
+    if (value) {
+      setSearch(value.name);
+    }
+  }, [value]);
+
   // Callback to trigger reload after adding supplier
   const handleSupplierAdded = () => {
     setReloadFlag((prev) => !prev); // toggle flag to trigger useEffect

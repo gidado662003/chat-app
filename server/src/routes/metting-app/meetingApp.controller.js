@@ -1,39 +1,13 @@
-const Meeting = require("../../models/meeting.schema");
-const ActionItem = require("../../models/meetingActionItems.schema");
-const mongoose = require("mongoose");
+const {
+  getMeetings: getMeetingsService,
+  getMeetingById: getMeetingByIdService,
+  createMeeting: createMeetingService,
+} = require("../../services/meeting.service");
 
 const getMeetings = async (req, res) => {
   try {
-    const { search, cursorTimestamp } = req.query;
-
-    let query = {};
-
-    // Cursor pagination
-    if (cursorTimestamp) {
-      query.createdAt = {
-        $lt: new Date(cursorTimestamp),
-      };
-    }
-
-    // Search filter
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { minutes: { $regex: search, $options: "i" } },
-        { agenda: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    const meetings = await Meeting.find(query)
-      .select("title date department status createdAt _id")
-      .sort({ createdAt: -1 })
-      .limit(80);
-
-    res.status(200).json({
-      meetings,
-      nextCursor:
-        meetings.length > 0 ? meetings[meetings.length - 1].createdAt : null,
-    });
+    const data = await getMeetingsService(req.query);
+    res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -43,76 +17,35 @@ const getMeetingById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id) {
-      return res.status(400).json({
-        message: "Meeting id is required",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        message: "Invalid meeting id",
-      });
-    }
-
-    const meeting = await Meeting.findById(id)
-      .populate("attendees", "name email")
-      .populate("actionItems")
-      .lean();
-
-    if (!meeting) {
-      return res.status(404).json({
-        message: "Meeting not found",
-      });
-    }
-
+    const meeting = await getMeetingByIdService(id);
     res.status(200).json(meeting);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    if (error.statusCode === 400) {
+      return res.status(400).json({ message: error.message });
+    }
+    if (error.statusCode === 404) {
+      return res.status(404).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
   }
 };
 
 const createMeeting = async (req, res) => {
-  const session = await mongoose.startSession();
-
   try {
-    session.startTransaction();
-
     const { meetingData, actionItemsData } = req.body;
-
-    const meeting = await Meeting.create([meetingData], { session });
-
-    let createdActionItems = [];
-
-    if (actionItemsData && actionItemsData.length > 0) {
-      const formattedItems = actionItemsData.map((item) => ({
-        ...item,
-        meetingId: meeting[0]._id,
-      }));
-
-      createdActionItems = await ActionItem.insertMany(formattedItems, {
-        session,
-      });
-
-      meeting[0].actionItems = createdActionItems.map((item) => item._id);
-      await meeting[0].save({ session });
-    }
-    await session.commitTransaction();
-    session.endSession();
+    const { meeting, actionItems } = await createMeetingService({
+      meetingData,
+      actionItemsData,
+    });
 
     res.status(201).json({
       message: "Meeting created successfully",
-      meeting: meeting[0],
-      actionItems: createdActionItems,
+      meeting,
+      actionItems,
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
     res.status(500).json({ message: error.message });
   }
-};
+}; 
 
 module.exports = { getMeetings, getMeetingById, createMeeting };
