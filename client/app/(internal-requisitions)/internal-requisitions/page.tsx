@@ -8,7 +8,7 @@ function page() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       const res = await internlRequestAPI.getDashboardData();
-      console.log(res);
+  
       setData(res);
     };
     fetchDashboardData();

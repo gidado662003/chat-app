@@ -10,6 +10,7 @@ import InputSearch from "@/components/internal-requsitions/inputSearch";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
+
 function RequisitionListContent() {
   const searchParams = useSearchParams();
   const router = useRouter();

@@ -471,8 +471,7 @@ export function ForwardeMessageModal({
   const [search, setSearch] = useState("");
   const { user: currentUser } = useAuthStore();
   const router = useRouter();
-  console.log("Message to forward:", messageToForward);
-  console.log("Current user:", currentUser);
+
   useEffect(() => {
     fetchChats();
   }, []);
