@@ -64,9 +64,6 @@ export default function TicketsPage() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-gray-900">Tickets</h1>
-            <p className="text-xs text-gray-500">
-              Latest ticket snapshots from webhook events
-            </p>
           </div>
         </div>
       </header>
@@ -99,7 +96,9 @@ export default function TicketsPage() {
         </div>
 
         {loading ? (
-          <div className="py-10 text-center text-gray-500">Loading tickets...</div>
+          <div className="py-10 text-center text-gray-500">
+            Loading tickets...
+          </div>
         ) : error ? (
           <div className="py-10 text-center text-red-600">{error}</div>
         ) : tickets.length === 0 ? (
@@ -167,4 +166,3 @@ export default function TicketsPage() {
     </div>
   );
 }
-
