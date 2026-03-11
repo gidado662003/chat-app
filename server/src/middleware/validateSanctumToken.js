@@ -71,12 +71,11 @@ async function validateSanctumToken(req, res, next) {
     const header = req.headers?.authorization;
     const cookieToken = req.cookies?.erp_token;
     const queryToken = req.query?.token;
-
+    const bodyToken = req.body?.token;
     const token =
       header && header.startsWith("Bearer ")
         ? header.split(" ")[1]
-        : cookieToken || queryToken;
-
+        : cookieToken || queryToken || bodyToken;
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
     }
@@ -165,8 +164,7 @@ async function validateSanctumToken(req, res, next) {
         throw new Error("Failed to create synced user");
       }
     } else {
-
-    /* ================= UPDATE USER ================= */
+      /* ================= UPDATE USER ================= */
       mongoUser.displayName = laravelUser.name || mongoUser.displayName;
 
       mongoUser.phone = laravelUser.phone || mongoUser.phone;

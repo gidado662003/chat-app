@@ -14,11 +14,11 @@ export default function TokenHandler() {
 
       (async () => {
         try {
-          const serverOrigin = `${window.location.protocol}//${window.location.hostname}:5001`;
+          const serverOrigin = window.location.origin;
 
           // Step 1: Exchange token for cookie
 
-          const response = await fetch(`${serverOrigin}/auth/token`, {
+          const response = await fetch(`${serverOrigin}/api/auth/token`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },

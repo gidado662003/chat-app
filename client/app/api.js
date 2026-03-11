@@ -1,7 +1,13 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+  // NOTE:
+  // - In production behind Apache, set NEXT_PUBLIC_API_URL to "/api"
+  //   (or to "https://your-domain/api") so all requests go through the
+  //   reverse proxy on port 3000.
+  // - In local development, set NEXT_PUBLIC_API_URL to
+  //   "http://localhost:5001/api" (matching the Express port).
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api",
   headers: {
     "Content-Type": "application/json",
   },

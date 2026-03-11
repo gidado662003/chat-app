@@ -2,7 +2,7 @@ import axios from "axios";
 import type { AdminChat, AdminMessage, AdminUser } from "@/lib/adminTypes";
 
 export const adminApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api",
   headers: {
     "Content-Type": "application/json",
   },

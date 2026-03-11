@@ -9,9 +9,12 @@ const cookieParser = require("cookie-parser");
 const app = express();
 app.use(cookieParser());
 // CORS Configuration
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",")
-  : ["http://localhost:3000"];
+const allowedOrigins = [
+  "http://102.36.135.18:3000",
+  "http://10.10.253.3:3000",
+  "http://localhost:3000",
+  "http://localhost:3001",
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -45,6 +48,6 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(morgan("dev"));
 app.use("/api", allRoutes);
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 module.exports = app;

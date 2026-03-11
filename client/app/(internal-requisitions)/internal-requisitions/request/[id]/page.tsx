@@ -34,6 +34,16 @@ import { ArrowLeft, Banknote, History, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { toast } from "sonner";
 
+// Base URL for serving uploaded requisition attachment files.
+// In production behind Apache, set NEXT_PUBLIC_FILE_BASE_URL to "" or to the
+// public origin so that /uploads is proxied correctly.
+// In local development without a reverse proxy, set it to
+// http://localhost:5001 so files are loaded directly from Express.
+const FILE_BASE_URL =
+  process.env.NEXT_PUBLIC_FILE_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") ||
+  "";
+
 const COMPANY_BANKS = [
   { id: "Wema", name: "Wema Bank" },
   { id: "Fidelity", name: "Fidelity Bank" },
@@ -343,7 +353,7 @@ export default function RequestDetailsPage() {
                 </span>
               </CardHeader>
               <CardContent className="pt-4">
-                <div className="max-h-[22rem] overflow-y-auto pr-1">
+                <div className="max-h-88 overflow-y-auto pr-1">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {request.attachments.map((file, idx) => (
                       <Card
@@ -352,18 +362,18 @@ export default function RequestDetailsPage() {
                       >
                         <CardContent className="p-0 relative">
                           <img
-                            src={`http://10.10.253.3:5001${file}`}
+                            src={`${FILE_BASE_URL}${file}`}
                             alt={`Attachment ${idx + 1}`}
                             className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-200"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                           <div className="absolute inset-0 flex flex-col justify-end p-3">
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-[11px] font-semibold text-white/90">
                                 Attachment {idx + 1}
                               </span>
                               <a
-                                href={`http://10.10.253.3:5001${file}`}
+                                href={`${FILE_BASE_URL}${file}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="bg-white/95 text-slate-900 px-3 py-1 rounded-full text-[10px] font-semibold shadow-sm hover:bg-slate-100"

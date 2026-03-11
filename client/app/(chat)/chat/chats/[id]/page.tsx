@@ -93,7 +93,15 @@ export default function ChatPage({ params }: ChatPageProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const API_URL = "http://10.10.253.3:5001";
+  // Base URL for serving uploaded files (images, videos, documents).
+  // In production behind Apache, set NEXT_PUBLIC_FILE_BASE_URL to "" or to the
+  // public origin (e.g. https://chat.example.com) so that /uploads is proxied.
+  // In local development without a reverse proxy, set it to
+  // http://localhost:5001 so files are loaded directly from Express.
+  const API_URL =
+    process.env.NEXT_PUBLIC_FILE_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") ||
+    "";
 
   useEffect(() => {
     if (chat?.type === "group") {
@@ -911,7 +919,7 @@ export default function ChatPage({ params }: ChatPageProps) {
 
                                 {/* TEXT MESSAGE */}
                                 {msg.text && (
-                                  <p className="text-[14px] leading-relaxed break-words whitespace-pre-wrap font-medium">
+                                  <p className="text-[14px] leading-relaxed wrap-break-word whitespace-pre-wrap font-medium">
                                     {msg.text}
                                   </p>
                                 )}
